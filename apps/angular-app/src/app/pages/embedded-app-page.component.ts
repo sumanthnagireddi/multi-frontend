@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Subscription, combineLatest } from 'rxjs';
 import {
     getAppBySlug,
     type WorkspaceApp,
@@ -21,50 +22,60 @@ import {
     </section>
   `,
 })
-export class EmbeddedAppPageComponent {
+export class EmbeddedAppPageComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly sanitizer = inject(DomSanitizer);
+    private routeSub?: Subscription;
 
-    readonly app: WorkspaceApp | null;
-    readonly safeUrl: SafeResourceUrl | null;
+    app: WorkspaceApp | null = null;
+    safeUrl: SafeResourceUrl | null = null;
 
-    constructor() {
-        const slug = this.route.snapshot.paramMap.get('slug');
-        const routePath =
-            this.route.snapshot.paramMap.get('page') ??
-            this.route.snapshot.paramMap.get('path') ??
-            this.route.snapshot.queryParamMap.get('path') ??
-            '';
+    ngOnInit(): void {
+        this.routeSub = combineLatest([
+            this.route.paramMap,
+            this.route.queryParamMap,
+        ]).subscribe(([params, queryParams]) => {
+            const slug = params.get('slug');
+            const routePath =
+                params.get('page') ??
+                params.get('path') ??
+                queryParams.get('path') ??
+                '';
 
-        if (slug && ['angular', 'react', 'next'].includes(slug)) {
-            this.app = getAppBySlug(slug as WorkspaceSlug);
-            const normalizedPath = routePath
-                ? routePath.startsWith('/')
-                    ? routePath
-                    : `/${routePath}`
-                : '';
+            if (slug && ['angular', 'react', 'next'].includes(slug)) {
+                this.app = getAppBySlug(slug as WorkspaceSlug);
+                const normalizedPath = routePath
+                    ? routePath.startsWith('/')
+                        ? routePath
+                        : `/${routePath}`
+                    : '';
 
-            let baseUrl = this.app.localUrl;
-            if (
-                typeof window !== 'undefined' &&
-                window.location.hostname !== 'localhost' &&
-                window.location.hostname !== '127.0.0.1'
-            ) {
-                if (slug === 'react') {
-                    baseUrl = 'https://multi-frontends-react.web.app';
-                } else if (slug === 'next') {
-                    baseUrl = 'https://multi-frontends-next.web.app';
-                } else if (slug === 'angular') {
-                    baseUrl = 'https://sumanth16.web.app';
+                let baseUrl = this.app.localUrl;
+                if (
+                    typeof window !== 'undefined' &&
+                    window.location.hostname !== 'localhost' &&
+                    window.location.hostname !== '127.0.0.1'
+                ) {
+                    if (slug === 'react') {
+                        baseUrl = 'https://multi-frontends-react.web.app';
+                    } else if (slug === 'next') {
+                        baseUrl = 'https://multi-frontends-next.web.app';
+                    } else if (slug === 'angular') {
+                        baseUrl = 'https://sumanth16.web.app';
+                    }
                 }
-            }
 
-            this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-                `${baseUrl}${normalizedPath}`,
-            );
-        } else {
-            this.app = null;
-            this.safeUrl = null;
-        }
+                this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+                    `${baseUrl}${normalizedPath}`,
+                );
+            } else {
+                this.app = null;
+                this.safeUrl = null;
+            }
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.routeSub?.unsubscribe();
     }
 }
