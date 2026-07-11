@@ -14,10 +14,10 @@
 }
 
 .role-container {
-  display: inline-block;
+  display: inline-flex;
   height: 1.3em;
   overflow: hidden;
-  vertical-align: bottom;
+  vertical-align: middle;
 }
 
 .role-wrapper {
