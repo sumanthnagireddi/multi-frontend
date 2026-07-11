@@ -45,6 +45,12 @@
             >
               Resources
             </a>
+            <a
+              [routerLink]="['/app','next','finance']"
+              class="text-sm font-semibold leading-6 text-gray-900"
+            >
+              Finance
+            </a>
 
 
             <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Contact</a>
@@ -70,6 +76,13 @@
                       class="text-sm font-semibold leading-6 text-gray-900"
                     >
                       Resources
+                    </a>
+                    <a
+                      [routerLink]="['/app','next']"
+                      [queryParams]="{ path: '/finance' }"
+                      class="text-sm font-semibold leading-6 text-gray-900"
+                    >
+                      Finance
                     </a>
                     <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Contact</a>
                     <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Projects</a>
