@@ -1,7 +1,7 @@
 {
   "projects": {
-    "default": "my-portfolio-fb7d7",
-    "portfolio": "my-portfolio-fb7d7"
+    "default": "multi-frontends",
+    "portfolio": "multi-frontends"
   },
   "targets": {},
   "etags": {},
