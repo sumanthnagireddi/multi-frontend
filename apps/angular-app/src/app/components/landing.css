@@ -1,16 +1,48 @@
- 
-      @keyframes waving {
-        0% { transform: rotate(0deg); }
-        10% { transform: rotate(14deg); }
-        20% { transform: rotate(-8deg); }
-        30% { transform: rotate(14deg); }
-        40% { transform: rotate(-4deg); }
-        50% { transform: rotate(10deg); }
-        60% { transform: rotate(0deg); }
-        100% { transform: rotate(0deg); }
-      }
+@keyframes waving {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
 
-      .animate-waving-hand {
-        animation: waving 2s linear infinite;
-      }
-    
+.animate-waving-hand {
+  animation: waving 2s linear infinite;
+}
+
+.role-container {
+  display: inline-block;
+  height: 1.3em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.role-wrapper {
+  display: flex;
+  flex-direction: column;
+  animation: roll 9s cubic-bezier(0.85, 0, 0.15, 1) infinite;
+}
+
+.role {
+  height: 1.3em;
+  line-height: 1.3em;
+  white-space: nowrap;
+}
+
+@keyframes roll {
+  0%, 25% {
+    transform: translateY(0);
+  }
+  30%, 55% {
+    transform: translateY(-1.3em);
+  }
+  60%, 85% {
+    transform: translateY(-2.6em);
+  }
+  90%, 100% {
+    transform: translateY(0);
+  }
+}
