@@ -12,37 +12,3 @@
 .animate-waving-hand {
   animation: waving 2s linear infinite;
 }
-
-.role-container {
-  display: inline-flex;
-  height: 1.3em;
-  overflow: hidden;
-  vertical-align: middle;
-}
-
-.role-wrapper {
-  display: flex;
-  flex-direction: column;
-  animation: roll 9s cubic-bezier(0.85, 0, 0.15, 1) infinite;
-}
-
-.role {
-  height: 1.3em;
-  line-height: 1.3em;
-  white-space: nowrap;
-}
-
-@keyframes roll {
-  0%, 25% {
-    transform: translateY(0);
-  }
-  30%, 55% {
-    transform: translateY(-1.3em);
-  }
-  60%, 85% {
-    transform: translateY(-2.6em);
-  }
-  90%, 100% {
-    transform: translateY(0);
-  }
-}
