@@ -31,6 +31,7 @@ export class EmbeddedAppPageComponent {
     constructor() {
         const slug = this.route.snapshot.paramMap.get('slug');
         const routePath =
+            this.route.snapshot.paramMap.get('page') ??
             this.route.snapshot.paramMap.get('path') ??
             this.route.snapshot.queryParamMap.get('path') ??
             '';
@@ -42,8 +43,24 @@ export class EmbeddedAppPageComponent {
                     ? routePath
                     : `/${routePath}`
                 : '';
+
+            let baseUrl = this.app.localUrl;
+            if (
+                typeof window !== 'undefined' &&
+                window.location.hostname !== 'localhost' &&
+                window.location.hostname !== '127.0.0.1'
+            ) {
+                if (slug === 'react') {
+                    baseUrl = 'https://multi-frontends-react.web.app';
+                } else if (slug === 'next') {
+                    baseUrl = 'https://multi-frontends-next.web.app';
+                } else if (slug === 'angular') {
+                    baseUrl = 'https://sumanth16.web.app';
+                }
+            }
+
             this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-                `${this.app.localUrl}${normalizedPath}`,
+                `${baseUrl}${normalizedPath}`,
             );
         } else {
             this.app = null;
