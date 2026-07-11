@@ -1,0 +1,41 @@
+{
+  "name": "next-app",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/next-app",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{workspaceRoot}/apps/next-app/.next/!(cache)/**/*",
+        "{workspaceRoot}/apps/next-app/.next/!(cache)"
+      ],
+      "options": {
+        "cwd": "apps/next-app",
+        "tty": false,
+        "command": "npx -p node@22 node ../../node_modules/next/dist/bin/next build"
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/next-app",
+        "command": "npx -p node@22 node ../../node_modules/next/dist/bin/next dev -p 4202"
+      }
+    },
+    "start": {
+      "continuous": true,
+      "dependsOn": ["build"],
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/next-app",
+        "command": "npx -p node@22 node ../../node_modules/next/dist/bin/next start -p 4202"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

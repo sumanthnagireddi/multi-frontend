@@ -1,0 +1,86 @@
+<header
+    class="sticky top-0 z-30 w-full border-b border-transparent max-md:border-gray-100 md:border-gray-100 bg-white backdrop-blur-xl">
+    <nav class="mx-auto flex items-center justify-between p-6 lg:px-8" aria-label="Global">
+        <div class="flex sm:flex-1">
+            <a class="-m-1.5 p-1.5">
+                <p routerLink="/" class="font-bold text-2xl text-gray-700 cursor-pointer">{{'
+                    < SN />'}}
+                </p>
+            </a>
+        </div>
+        <div class="flex sm:hidden">
+            <button *ngIf="!openMenu" (click)="toggleMenu()" type="button"
+                class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700">
+                <span class="sr-only">Open main menu</span>
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                    aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+            <button *ngIf="openMenu" (click)="toggleMenu()" type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700">
+                <span class="sr-only">Close menu</span>
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                    aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="hidden sm:flex sm:gap-x-12">
+            <div class="relative">
+                <button type="button" class="flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900"
+                    aria-expanded="false">
+                    About
+                </button>
+            </div>
+
+            <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Work</a>
+            <a routerLink="blog" class="text-sm font-semibold leading-6 text-gray-900">Blog</a>
+        
+<!--               <a routerLink="interview-questions-answers" class="text-sm font-semibold leading-6 text-gray-900">Interview Q&A</a>  -->
+         <!--  <a href="https://sumanthnagireddi-interview.web.app/" target="_blank" class="text-sm font-semibold leading-6 text-gray-900">Interview Q&A</a> -->
+            <a
+              [routerLink]="['/app','react','resources']"
+              class="text-sm font-semibold leading-6 text-gray-900"
+            >
+              Resources
+            </a>
+
+
+            <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Contact</a>
+            <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Projects</a>
+        </div>
+        <div class="hidden cursor-pointer sm:flex sm:flex-1 sm:justify-end">
+            <button (click)="downloadPdf()"
+                class="inline-flex items-center justify-center rounded-xl bg-gray-900 px-4 py-1.5 font-medium text-gray-50 transition-colors duration-200 hover:bg-gray-700 active:bg-gray-800">Download
+                CV</button>
+
+        </div>
+        <div class="mt-6 sm:hidden flow-root absolute p-4 px-8 bg-white h-[300px] w-full top-10 z-10 right-0"
+            *ngIf="openMenu">
+            <div (click)="openMenu = false" class="-my-6 divide-y divide-gray-500/10">
+                <div class=" py-4 flex flex-col gap-2">
+
+                    <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Work</a>
+                    <a routerLink="blog" class="text-sm font-semibold leading-6 text-gray-900">Blog</a>
+<!--                     <a routerLink="interview-questions-answers" class="text-sm font-semibold leading-6 text-gray-900">Interview Q&A</a>  -->
+                    <a
+                      [routerLink]="['/app','react']"
+                      [queryParams]="{ path: '/resources' }"
+                      class="text-sm font-semibold leading-6 text-gray-900"
+                    >
+                      Resources
+                    </a>
+                    <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Contact</a>
+                    <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Projects</a>
+                </div>
+                <div class="py-6">
+                    <button 
+                        class="inline-flex items-center justify-center rounded-xl bg-gray-900 px-4 py-1.5 font-medium text-gray-50 transition-colors duration-200 hover:bg-gray-700 active:bg-gray-800">Download
+                        CV</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+</header>

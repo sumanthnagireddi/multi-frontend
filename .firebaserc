@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "my-portfolio-fb7d7",
+    "portfolio": "my-portfolio-fb7d7"
+  },
+  "targets": {},
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
+}

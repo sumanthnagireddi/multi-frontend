@@ -1,0 +1,23 @@
+{
+  "name": "workspace-data",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/workspace-data/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/libs/shared/workspace-data",
+        "main": "libs/shared/workspace-data/src/index.ts",
+        "tsConfig": "libs/shared/workspace-data/tsconfig.lib.json",
+        "assets": [
+          "libs/shared/workspace-data/*.md"
+        ]
+      }
+    }
+  }
+}

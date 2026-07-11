@@ -1,0 +1,29 @@
+{
+  "database": {
+    "rules": {
+      "rules": {
+        ".read": true,
+        ".write": false
+      }
+    }
+  },
+  "hosting": {
+    "public": "dist/apps/angular-app/browser",
+    "site": "sumanthnagireddi1",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
