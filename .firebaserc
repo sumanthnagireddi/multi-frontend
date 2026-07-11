@@ -3,7 +3,21 @@
     "default": "multi-frontends",
     "portfolio": "multi-frontends"
   },
-  "targets": {},
+  "targets": {
+    "multi-frontends": {
+      "hosting": {
+        "angular-app": [
+          "multi-frontends"
+        ],
+        "react-app": [
+          "multi-frontends-react"
+        ],
+        "next-app": [
+          "multi-frontends-next"
+        ]
+      }
+    }
+  },
   "etags": {},
   "dataconnectEmulatorConfig": {}
 }
