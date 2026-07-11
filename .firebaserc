@@ -7,7 +7,7 @@
     "multi-frontends": {
       "hosting": {
         "angular-app": [
-          "multi-frontends"
+          "sumanth16"
         ],
         "react-app": [
           "multi-frontends-react"
