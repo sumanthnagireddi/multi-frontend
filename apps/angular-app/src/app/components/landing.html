@@ -1,109 +1,110 @@
- <section class="w-full bg-white py-16 md:py-20 2xl:py-24">
-      <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 md:gap-12 md:px-8">
-        <div class="flex flex-col gap-12 md:flex-row">
-          <div class="flex items-center justify-center md:order-last md:flex-grow md:justify-end">
-            <div class="relative h-[300px] w-[280px] md:h-[360px] md:w-[320px]">
-              <img
-                alt="Headshot of Sumanth"
-                loading="lazy"
-                width="1067"
-                height="1067"
-                decoding="async"
-                class="absolute z-10 h-[280px] w-[240px] rounded-lg shadow-sm max-md:left-5 md:left-0 md:top-0 md:h-[320px] md:w-[280px]"
-                style="color:transparent;object-fit:cover"
-                src="assets/imag3.jpg"
-              />
-            </div>
+<section class="w-full bg-white py-16 md:py-20 2xl:py-24">
+  <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 md:gap-12 md:px-8">
+    <div class="flex flex-col gap-12 md:flex-row">
+      <div class="flex items-center justify-center md:order-last md:flex-grow md:justify-end">
+        <div class="relative h-[300px] w-[280px] md:h-[360px] md:w-[320px]">
+          <img alt="Headshot of Sumanth" loading="lazy" width="1067" height="1067" decoding="async"
+            class="absolute z-10 h-[280px] w-[240px] rounded-lg shadow-sm max-md:left-5 md:left-0 md:top-0 md:h-[320px] md:w-[280px]"
+            style="color:transparent;object-fit:cover" src="image.jpg" />
+        </div>
+      </div>
+
+      <div class="flex-grow flex-1">
+        <p
+          class="text-4xl font-semibold md:font-bold md:text-5xl md:tracking-[-0.02em] lg:text-6xl lg:leading-[72px] text-slate-900 flex items-center gap-x-3 whitespace-nowrap">
+          <span>Hi, I'm Sumanth Nagireddi</span>
+        
+        </p>
+
+        <p class="text-base font-normal py-4 text-slate-700">
+          A passionate Fullstack developer specializing in <span class="font-medium text-red-700">MEAN</span>.
+          With a keen eye for design and a commitment to creating seamless user experiences, I bring over
+          {{ calculateExperience() }} years of expertise in crafting dynamic and responsive web applications.
+          I excel in harnessing the power of Angular & React to build robust and scalable solutions. My proficiency
+          extends to HTML, CSS, JavaScript, Angular, React, Node.js, Express, and TypeScript, ensuring that every
+          project I undertake is not only functional but also visually appealing. I have a deep understanding of
+          front-end architecture, state management, and the latest web development trends.
+        </p>
+
+        <div class="flex flex-col gap-2 py-6 text-slate-700">
+          <div class="flex gap-2 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="stroke-slate-600">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <p class="text-base">Hyderabad, India</p>
           </div>
-
-          <div>
-            <p class="text-4xl flex items-center font-semibold md:font-bold md:text-5xl md:tracking-[-0.02em] lg:text-6xl lg:leading-[72px] text-slate-900">
-              Hi, I'm Sumanth <span class="animate-waving-hand inline-block">👋</span>
-            </p>
-
-            <p class="text-base font-normal py-4 text-slate-700">
-              A passionate Fullstack developer specializing in <span class="font-medium text-red-700">MEAN</span>.
-              With a keen eye for design and a commitment to creating seamless user experiences, I bring over
-              {{ calculateExperience() }} years of expertise in crafting dynamic and responsive web applications.
-              I excel in harnessing the power of Angular & React to build robust and scalable solutions. My proficiency
-              extends to HTML, CSS, JavaScript, Angular, React, Node.js, Express, and TypeScript, ensuring that every
-              project I undertake is not only functional but also visually appealing. I have a deep understanding of
-              front-end architecture, state management, and the latest web development trends.
-            </p>
-
-            <div class="flex flex-col gap-2 py-6 text-slate-700">
-              <div class="flex gap-2 items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="stroke-slate-600">
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <p class="text-base">Hyderabad, India</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="flex h-6 w-6 items-center justify-center">
-                  <span class="relative flex h-3 w-3">
-                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
-                  </span>
-                </div>
-                <p class="text-base">Senior Software Engineer at Epam Systems</p>
-              </div>
+          <div class="flex items-center gap-2">
+            <div class="flex h-6 w-6 items-center justify-center">
+              <span class="relative flex h-3 w-3">
+                <span
+                  class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
+              </span>
             </div>
+            <p class="text-base">Senior Software Engineer at Epam Systems</p>
+          </div>
+        </div>
 
-            <div class="flex flex-wrap gap-2 mt-2">
-              <button type="button" (click)="openLink('github')"
-                class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
-                  <path d="M9 18c-4.51 2-5-2-7-2"></path>
-                </svg>
-              </button>
-              <button type="button" (click)="openLink('linkedin')"
-                class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                  <rect width="4" height="12" x="2" y="9" />
-                  <circle cx="4" cy="4" r="2" />
-                </svg>
-              </button>
-              <button type="button" (click)="openLink('twitter')"
-                class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
-                </svg>
-              </button>
-              <button type="button" (click)="openLink('mail')"
-                class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="20" height="16" x="2" y="4" rx="2" />
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                </svg>
-              </button>
-              <button type="button" (click)="openLink('instagram')"
-                class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                </svg>
-              </button>
-              <button type="button" (click)="openLink('facebook')"
-                class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                </svg>
-              </button>
-              <button type="button" (click)="openLink('whatsapp')"
-                class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
-                <svg fill="#000000" height="23" width="23" viewBox="0 0 308 308" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M227.904,176.981c-0.6-0.288-23.054-11.345-27.044-12.781c-1.629-0.585-3.374-1.156-5.23-1.156
+        <div class="flex flex-wrap gap-2 mt-2">
+          <button type="button" (click)="openLink('github')"
+            class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4">
+              </path>
+              <path d="M9 18c-4.51 2-5-2-7-2"></path>
+            </svg>
+          </button>
+          <button type="button" (click)="openLink('linkedin')"
+            class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+              <rect width="4" height="12" x="2" y="9" />
+              <circle cx="4" cy="4" r="2" />
+            </svg>
+          </button>
+          <button type="button" (click)="openLink('twitter')"
+            class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z">
+              </path>
+            </svg>
+          </button>
+          <button type="button" (click)="openLink('mail')"
+            class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="16" x="2" y="4" rx="2" />
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+            </svg>
+          </button>
+          <button type="button" (click)="openLink('instagram')"
+            class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+            </svg>
+          </button>
+          <button type="button" (click)="openLink('facebook')"
+            class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+            </svg>
+          </button>
+          <button type="button" (click)="openLink('whatsapp')"
+            class="relative flex justify-center items-center rounded-lg p-1.5 transition-colors duration-200 hover:bg-slate-200 text-slate-700">
+            <svg fill="#000000" height="23" width="23" viewBox="0 0 308 308" xmlns="http://www.w3.org/2000/svg">
+              <path d="M227.904,176.981c-0.6-0.288-23.054-11.345-27.044-12.781c-1.629-0.585-3.374-1.156-5.23-1.156
                     c-3.032,0-5.579,1.511-7.563,4.479c-2.243,3.334-9.033,11.271-11.131,13.642c-0.274,0.313-0.648,0.687-0.872,0.687
                     c-0.201,0-3.676-1.431-4.728-1.888c-24.087-10.463-42.37-35.624-44.877-39.867c-0.358-0.61-0.373-0.887-0.376-0.887
                     c0.088-0.323,0.898-1.135,1.316-1.554c1.223-1.21,2.548-2.805,3.83-4.348c0.607-0.731,1.215-1.463,1.812-2.153
@@ -113,17 +114,17 @@
                     c17.873,26.102,40.154,45.446,62.741,54.469c21.745,8.686,32.042,9.69,37.896,9.69c0.001,0,0.001,0,0.001,0
                     c2.46,0,4.429-0.193,6.166-0.364l1.102-0.105c7.512-0.666,24.02-9.22,27.775-19.655c2.958-8.219,3.738-17.199,1.77-20.458
                     C233.168,179.508,230.845,178.393,227.904,176.981z" />
-                  <path d="M156.734,0C73.318,0,5.454,67.354,5.454,150.143c0,26.777,7.166,52.988,20.741,75.928L0.212,302.716
+              <path d="M156.734,0C73.318,0,5.454,67.354,5.454,150.143c0,26.777,7.166,52.988,20.741,75.928L0.212,302.716
                     c-0.484,1.429-0.124,3.009,0.933,4.085C1.908,307.58,2.943,308,4,308c0.405,0,0.813-0.061,1.211-0.188l79.92-25.396
                     c21.87,11.685,46.588,17.853,71.604,17.853C240.143,300.27,308,232.923,308,150.143C308,67.354,240.143,0,156.734,0z
                     M156.734,268.994c-23.539,0-46.338-6.797-65.936-19.657c-0.659-0.433-1.424-0.655-2.194-0.655c-0.407,0-0.815,0.062-1.212,0.188
                     l-40.035,12.726l12.924-38.129c0.418-1.234,0.209-2.595-0.561-3.647c-14.924-20.392-22.813-44.485-22.813-69.677
                     c0-65.543,53.754-118.867,119.826-118.867c66.064,0,119.812,53.324,119.812,118.867
                     C276.546,215.678,222.799,268.994,156.734,268.994z" />
-                </svg>
-              </button>
-            </div>
-          </div>
+            </svg>
+          </button>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</section>

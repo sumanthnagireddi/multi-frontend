@@ -12,6 +12,7 @@ const nextConfig = {
   // See: https://nx.dev/recipes/next/next-config-setup
   nx: {},
   output: 'export',
+  trailingSlash: true,
 };
 
 const plugins = [

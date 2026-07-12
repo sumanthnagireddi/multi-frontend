@@ -1,1 +1,42 @@
 /* Your styles goes here. */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Semantic accents — shared across themes (same chroma family) */
+  --accent: oklch(0.66 0.14 45);      /* terracotta */
+  --accent-soft: oklch(0.66 0.14 45 / 0.12);
+  --good: oklch(0.70 0.15 155);       /* ✓ */
+  --bad: oklch(0.63 0.19 26);         /* ✗ */
+  --tip: oklch(0.78 0.13 80);         /* ★ */
+  --good-soft: oklch(0.70 0.15 155 / 0.12);
+  --bad-soft: oklch(0.63 0.19 26 / 0.12);
+  --tip-soft: oklch(0.78 0.13 80 / 0.14);
+  --info: oklch(0.66 0.12 230);       /* 🔗 analogy */
+  --warn: oklch(0.62 0.16 310);       /* ⚠ common confusion */
+  --info-soft: oklch(0.66 0.12 230 / 0.12);
+  --warn-soft: oklch(0.62 0.16 310 / 0.12);
+}
+
+/* ---------- Light (default) ---------- */
+:root, [data-theme="light"] {
+  --bg: oklch(0.975 0.004 75);
+  --bg-grid: oklch(0.93 0.005 75);
+  --panel: oklch(0.995 0.002 75);
+  --panel-2: oklch(0.965 0.004 75);
+  --border: oklch(0.89 0.006 75);
+  --border-strong: oklch(0.82 0.008 75);
+  --text: oklch(0.27 0.01 60);
+  --text-soft: oklch(0.46 0.01 60);
+  --text-faint: oklch(0.62 0.008 60);
+  --shadow: 0 1px 2px oklch(0.27 0.01 60 / 0.06), 0 8px 24px oklch(0.27 0.01 60 / 0.05);
+  /* code surfaces stay dark */
+  --code-bg: oklch(0.20 0.008 265);
+  --code-panel: oklch(0.245 0.009 265);
+  --code-border: oklch(0.32 0.01 265);
+  --code-text: oklch(0.90 0.01 265);
+  --code-dim: oklch(0.62 0.012 265);
+}
