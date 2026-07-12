@@ -7,11 +7,11 @@ import path from 'path';
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/apps/react-app',
-  server:{
+  server: {
     port: 4201,
     host: 'localhost',
   },
-  preview:{
+  preview: {
     port: 4201,
     host: 'localhost',
   },
@@ -40,8 +40,7 @@ export default defineConfig(() => ({
     ],
   },
   define: {
-    'process.env.NODE_ENV': JSON.stringify('development'),
-    'process.env': { NODE_ENV: 'development' },
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
   },
   // Uncomment this if you are using workers.
   // worker: {
@@ -54,5 +53,6 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    cssMinify: false,
   },
 }));
