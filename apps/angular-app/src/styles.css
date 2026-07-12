@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0');
 
 @tailwind base;
 @tailwind components;
@@ -11,9 +12,17 @@
   --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* ─── Dark Mode CSS variables ─────────────────────────────────────────────── */
+html.dark {
+  --canvas: #0f172a;
+  --canvas-strong: #1e293b;
+  --ink: #e2e8f0;
+}
+
 @layer base {
   html {
     font-family: var(--font-sans);
+    transition: background-color 0.3s, color 0.3s;
   }
 
   body {
@@ -31,5 +40,75 @@
       ),
       linear-gradient(180deg, var(--canvas-strong), var(--canvas));
     color: var(--ink);
+    transition: background 0.3s, color 0.3s;
   }
+}
+
+/* ─── Dark Mode Tailwind overrides ──────────────────────────────────────── */
+html.dark body {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(15, 118, 110, 0.12),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at right center,
+      rgba(30, 58, 138, 0.15),
+      transparent 24%
+    ),
+    linear-gradient(180deg, #1e293b, #0f172a);
+  color: #e2e8f0;
+}
+
+/* Header dark mode */
+html.dark header {
+  background-color: #0f172a !important;
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark header a,
+html.dark header p,
+html.dark header span:not(.material-symbols-outlined) {
+  color: #e2e8f0 !important;
+}
+
+html.dark header nav {
+  background-color: #0f172a;
+}
+
+/* Mobile menu dark mode */
+html.dark .mobile-menu-panel {
+  background-color: #0f172a !important;
+}
+
+/* Landing page dark mode */
+html.dark section.bg-white {
+  background-color: #0f172a !important;
+}
+
+html.dark .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-slate-800 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .bg-white {
+  background-color: #1e293b !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: #0f172a !important;
+}
+
+html.dark .border-slate-200,
+html.dark .border-gray-200 {
+  border-color: #334155 !important;
 }

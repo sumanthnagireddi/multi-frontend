@@ -1,6 +1,6 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription, combineLatest } from 'rxjs';
 import {
     getAppBySlug,
@@ -12,11 +12,31 @@ import {
     selector: 'app-embedded-app-page',
     standalone: true,
     imports: [],
+    // OnPush avoids the checked-after-check issue:
+    // state mutations go through cdr.markForCheck() explicitly.
+    changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    <section class="grid gap-4">
+    <section class="grid gap-4 relative">
+      @if (isLoading) {
+        <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm z-50 transition-all duration-300 h-[91vh]">
+          <div class="relative w-12 h-12">
+            <div class="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-slate-700"></div>
+            <div class="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+          </div>
+          <span class="mt-4 text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-wide animate-pulse">
+            Loading {{ app?.name || 'Application' }}...
+          </span>
+        </div>
+      }
       @if (app && safeUrl) {
-        <div class="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white/90 shadow-[0_22px_80px_-60px_rgba(15,23,42,0.8)]">
-          <iframe [src]="safeUrl" class="h-[78vh] w-full border-0 bg-white" [title]="app.name"></iframe>
+        <div class="overflow-hidden">
+          <iframe
+            #embeddedIframe
+            [src]="safeUrl"
+            (load)="onIframeLoad()"
+            class="h-[91vh] w-full border-0 bg-white dark:bg-slate-900"
+            [title]="app.name"
+          ></iframe>
         </div>
       }
     </section>
@@ -25,10 +45,14 @@ import {
 export class EmbeddedAppPageComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly sanitizer = inject(DomSanitizer);
+    private readonly cdr = inject(ChangeDetectorRef);
     private routeSub?: Subscription;
+
+    @ViewChild('embeddedIframe') iframeRef?: ElementRef<HTMLIFrameElement>;
 
     app: WorkspaceApp | null = null;
     safeUrl: SafeResourceUrl | null = null;
+    isLoading = false;
 
     ngOnInit(): void {
         this.routeSub = combineLatest([
@@ -36,13 +60,12 @@ export class EmbeddedAppPageComponent implements OnInit, OnDestroy {
             this.route.queryParamMap,
         ]).subscribe(([params, queryParams]) => {
             const slug = params.get('slug');
-            const routePath =
-                params.get('page') ??
-                params.get('path') ??
-                queryParams.get('path') ??
-                '';
+            const page = params.get('page') ?? '';
+            const subpage = params.get('subpage') ? `/${params.get('subpage')}` : '';
+            const routePath = `${page}${subpage}` || queryParams.get('path') || '';
 
             if (slug && ['angular', 'react', 'next'].includes(slug)) {
+                this.isLoading = true;
                 this.app = getAppBySlug(slug as WorkspaceSlug);
                 const normalizedPath = routePath
                     ? routePath.startsWith('/')
@@ -71,7 +94,20 @@ export class EmbeddedAppPageComponent implements OnInit, OnDestroy {
             } else {
                 this.app = null;
                 this.safeUrl = null;
+                this.isLoading = false;
             }
+
+            // Inform Angular that state changed (needed for OnPush)
+            this.cdr.markForCheck();
+        });
+    }
+
+    onIframeLoad(): void {
+        // Defer to next microtask so Angular's current CD cycle is fully done
+        // before we mutate isLoading — eliminates NG0100.
+        Promise.resolve().then(() => {
+            this.isLoading = false;
+            this.cdr.markForCheck();
         });
     }
 

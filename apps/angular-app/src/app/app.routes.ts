@@ -12,4 +12,8 @@ export const appRoutes: Route[] = [
     path: 'app/:slug/:page',
     component: EmbeddedAppPageComponent,
   },
-];
+  {
+    path: 'app/:slug/:page/:subpage',
+    component: EmbeddedAppPageComponent,
+  },
+];  

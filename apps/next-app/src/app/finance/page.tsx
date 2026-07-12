@@ -182,13 +182,13 @@ export default function FinanceDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased pb-12">
       {/* Upper banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white py-12 px-6 shadow-md">
-        <div className="mx-auto max-w-6xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white py-8 px-4 md:py-12 md:px-6 shadow-md">
+        <div className="mx-auto max-w-6xl flex flex-col gap-6">
           <div>
             <span className="text-xs uppercase tracking-[0.25em] text-emerald-400 font-semibold">
               Personal Finance Manager
             </span>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-white md:text-4xl">
               Finance Buddy Dashboard
             </h1>
             <p className="mt-2 text-slate-300 text-sm md:text-base max-w-xl">
@@ -196,10 +196,10 @@ export default function FinanceDashboard() {
             </p>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
                 activeTab === 'overview'
                   ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                   : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
@@ -210,7 +210,7 @@ export default function FinanceDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('list')}
-              className={`px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
                 activeTab === 'list'
                   ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                   : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
@@ -221,7 +221,7 @@ export default function FinanceDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('add')}
-              className={`px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
                 activeTab === 'add'
                   ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                   : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'

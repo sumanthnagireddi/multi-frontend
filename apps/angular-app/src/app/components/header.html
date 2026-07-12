@@ -1,16 +1,16 @@
 <header
-    class="sticky top-0 z-30 w-full border-b border-transparent max-md:border-gray-100 md:border-gray-100 bg-white backdrop-blur-xl">
-    <nav class="mx-auto flex items-center justify-between p-6 lg:px-8" aria-label="Global">
+    class="sticky top-0 z-30 w-full border-b border-transparent max-md:border-gray-100 md:border-gray-100 bg-white dark:bg-slate-900 dark:border-slate-700 backdrop-blur-xl transition-colors duration-300">
+    <nav class="mx-auto flex items-center justify-between px-6 py-3 lg:px-8" aria-label="Global">
         <div class="flex sm:flex-1">
             <a class="-m-1.5 p-1.5">
-                <p routerLink="/" class="font-bold text-2xl text-gray-700 cursor-pointer">{{'
+                <p routerLink="/" class="font-bold text-xl text-gray-800 dark:text-gray-100 cursor-pointer">{{'
                     < SN />'}}
                 </p>
             </a>
         </div>
         <div class="flex sm:hidden">
             <button *ngIf="!openMenu" (click)="toggleMenu()" type="button"
-                class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700">
+                class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-gray-200">
                 <span class="sr-only">Open main menu</span>
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                     aria-hidden="true">
@@ -27,69 +27,63 @@
             </button>
         </div>
         <div class="hidden sm:flex sm:gap-x-12">
-            <div class="relative">
-                <button type="button" class="flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900"
-                    aria-expanded="false">
-                    About
-                </button>
-            </div>
-
-            <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Work</a>
-            <a routerLink="blog" class="text-sm font-semibold leading-6 text-gray-900">Blog</a>
-        
-<!--               <a routerLink="interview-questions-answers" class="text-sm font-semibold leading-6 text-gray-900">Interview Q&A</a>  -->
-         <!--  <a href="https://sumanthnagireddi-interview.web.app/" target="_blank" class="text-sm font-semibold leading-6 text-gray-900">Interview Q&A</a> -->
+            <a href="#" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">AI</a>
+            <a routerLink="blog" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">Blog</a>
             <a
               [routerLink]="['/app','react','resources']"
-              class="text-sm font-semibold leading-6 text-gray-900"
+              class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
             >
               Resources
             </a>
             <a
               [routerLink]="['/app','next','finance']"
-              class="text-sm font-semibold leading-6 text-gray-900"
+              class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
             >
               Finance
             </a>
-
-
-            <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Contact</a>
-            <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Projects</a>
+            <a href="#" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">Contact</a>
+            <a href="#" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">Projects</a>
         </div>
-        <div class="hidden cursor-pointer sm:flex sm:flex-1 sm:justify-end">
+        <div class="hidden cursor-pointer sm:flex sm:flex-1 sm:justify-end items-center gap-3">
+            <!-- Theme Toggle -->
+            <button (click)="toggleTheme()"
+                class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+                [attr.title]="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+                <span class="material-symbols-outlined text-xl">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+            </button>
             <button (click)="downloadPdf()"
-                class="inline-flex items-center justify-center rounded-xl bg-gray-900 px-4 py-1.5 font-medium text-gray-50 transition-colors duration-200 hover:bg-gray-700 active:bg-gray-800">Download
+                class="inline-flex items-center justify-center rounded-xl bg-gray-900 dark:bg-gray-100 dark:text-gray-900 px-4 py-1.5 font-medium text-gray-50 transition-colors duration-200 hover:bg-gray-700 dark:hover:bg-gray-200 active:bg-gray-800">Download
                 CV</button>
-
         </div>
-        <div class="mt-6 sm:hidden flow-root absolute p-4 px-8 bg-white h-[300px] w-full top-10 z-10 right-0"
+        <div class="mt-6 sm:hidden flow-root absolute p-4 px-8 bg-white dark:bg-slate-900 dark:border dark:border-slate-700 shadow-lg h-auto w-full top-[52px] z-10 right-0"
             *ngIf="openMenu">
-            <div (click)="openMenu = false" class="-my-6 divide-y divide-gray-500/10">
-                <div class=" py-4 flex flex-col gap-2">
-
-                    <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Work</a>
-                    <a routerLink="blog" class="text-sm font-semibold leading-6 text-gray-900">Blog</a>
-<!--                     <a routerLink="interview-questions-answers" class="text-sm font-semibold leading-6 text-gray-900">Interview Q&A</a>  -->
+            <div (click)="openMenu = false" class="-my-6 divide-y divide-gray-500/10 dark:divide-slate-700">
+                <div class="py-4 flex flex-col gap-3">
+                    <a href="#" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">Work</a>
+                    <a routerLink="blog" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">Blog</a>
                     <a
-                      [routerLink]="['/app','react']"
-                      [queryParams]="{ path: '/resources' }"
-                      class="text-sm font-semibold leading-6 text-gray-900"
+                      [routerLink]="['/app','react','resources']"
+                      class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       Resources
                     </a>
                     <a
-                      [routerLink]="['/app','next']"
-                      [queryParams]="{ path: '/finance' }"
-                      class="text-sm font-semibold leading-6 text-gray-900"
+                      [routerLink]="['/app','next','finance']"
+                      class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       Finance
                     </a>
-                    <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Contact</a>
-                    <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Projects</a>
+                    <a href="#" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">Contact</a>
+                    <a href="#" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">Projects</a>
                 </div>
-                <div class="py-6">
-                    <button 
-                        class="inline-flex items-center justify-center rounded-xl bg-gray-900 px-4 py-1.5 font-medium text-gray-50 transition-colors duration-200 hover:bg-gray-700 active:bg-gray-800">Download
+                <div class="py-4 flex flex-col gap-3">
+                    <button (click)="toggleTheme(); $event.stopPropagation()"
+                        class="inline-flex items-center gap-2 rounded-xl bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 w-full justify-center">
+                        <span class="material-symbols-outlined text-xl">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+                        {{ isDark ? 'Light Mode' : 'Dark Mode' }}
+                    </button>
+                    <button (click)="downloadPdf()"
+                        class="inline-flex items-center justify-center rounded-xl bg-gray-900 dark:bg-gray-100 dark:text-gray-900 px-4 py-2 font-medium text-gray-50 transition-colors duration-200 hover:bg-gray-700 dark:hover:bg-gray-200 active:bg-gray-800 w-full">Download
                         CV</button>
                 </div>
             </div>

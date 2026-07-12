@@ -1,5 +1,6 @@
 import { Space_Grotesk } from 'next/font/google';
 import './global.css';
+import { ThemeSync } from './theme-sync';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} min-h-screen bg-[color:var(--canvas)] text-[color:var(--ink)] antialiased`}
       >
+        <ThemeSync />
         {children}
       </body>
     </html>
