@@ -1,609 +1,641 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  financeService,
+  CardInfo,
+  PersonalExpense,
+  ConstructionExpense,
+  DebtEntry,
+  CardBillStatement
+} from './services';
 
-// Type definition for a Saving item
-interface SavingItem {
-  id: string;
-  amount: number;
-  savingsType: string;
-  platform: string;
-  interestRate: number;
-  createdDate: string;
-  maturityDate: string;
-  notes: string;
-}
-
-const SAVINGS_TYPES = [
-  "Fixed Deposit",
-  "Mutual Funds",
-  "Stocks",
-  "Real Estate",
-  "Gold/Silver",
-];
-
-const PLATFORMS = ["Zerodha", "Groww", "Banks", "Others"];
-
-const INITIAL_SAVINGS: SavingItem[] = [
-  {
-    id: '1',
-    amount: 150000,
-    savingsType: 'Fixed Deposit',
-    platform: 'Banks',
-    interestRate: 7.1,
-    createdDate: '2026-01-15',
-    maturityDate: '2027-01-15',
-    notes: 'Emergency reserve fund at HDFC Bank.',
-  },
-  {
-    id: '2',
-    amount: 280000,
-    savingsType: 'Mutual Funds',
-    platform: 'Groww',
-    interestRate: 12.5,
-    createdDate: '2025-06-10',
-    maturityDate: 'N/A',
-    notes: 'Nifty 50 Index Mutual Fund SIP.',
-  },
-  {
-    id: '3',
-    amount: 175000,
-    savingsType: 'Stocks',
-    platform: 'Zerodha',
-    interestRate: 15.4,
-    createdDate: '2025-08-20',
-    maturityDate: 'N/A',
-    notes: 'Long term portfolio in blue-chip tech stocks.',
-  },
-  {
-    id: '4',
-    amount: 95000,
-    savingsType: 'Gold/Silver',
-    platform: 'Others',
-    interestRate: 8.8,
-    createdDate: '2024-11-05',
-    maturityDate: '2032-11-05',
-    notes: 'Sovereign Gold Bonds (SGB) Series IV.',
-  },
-];
+// Import refactored subcomponents
+import OverviewTab from './components/OverviewTab';
+import PersonalTab from './components/PersonalTab';
+import CardsTab from './components/CardsTab';
+import ConstructionTab from './components/ConstructionTab';
+import DebtsTab from './components/DebtsTab';
 
 export default function FinanceDashboard() {
-  const [savings, setSavings] = useState<SavingItem[]>(INITIAL_SAVINGS);
-  const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'add'>('overview');
+  const [loading, setLoading] = useState(true);
+  const [cards, setCards] = useState<CardInfo[]>([]);
+  const [personalExpenses, setPersonalExpenses] = useState<PersonalExpense[]>([]);
+  const [personalTarget, setPersonalTarget] = useState<number>(10000);
+  const [constructionExpenses, setConstructionExpenses] = useState<ConstructionExpense[]>([]);
+  const [constructionBudget, setConstructionBudget] = useState<number>(5000000);
+  const [debts, setDebts] = useState<DebtEntry[]>([]);
+  const [cardBills, setCardBills] = useState<CardBillStatement[]>([]);
   
-  // Form State
-  const [amount, setAmount] = useState<string>('');
-  const [savingsType, setSavingsType] = useState<string>(SAVINGS_TYPES[0]);
-  const [platform, setPlatform] = useState<string>(PLATFORMS[0]);
-  const [interestRate, setInterestRate] = useState<string>('');
-  const [createdDate, setCreatedDate] = useState<string>('');
-  const [maturityDate, setMaturityDate] = useState<string>('');
-  const [notes, setNotes] = useState<string>('');
-  
-  // Filter States
-  const [typeFilter, setTypeFilter] = useState<string>('All');
-  const [platformFilter, setPlatformFilter] = useState<string>('All');
+  // Navigation & Filter states
+  const [activeTab, setActiveTab] = useState<'overview' | 'personal' | 'cards' | 'construction' | 'debts'>('overview');
+  const [selectedMonth, setSelectedMonth] = useState<string>('2026-07'); // YYYY-MM
+  const [personalCategoryFilter, setPersonalCategoryFilter] = useState<string>('All');
+  const [personalCardFilter, setPersonalCardFilter] = useState<string>('All');
 
   // Success Notification state
-  const [showToast, setShowToast] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string>('');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
-  // Calculations
-  const stats = useMemo(() => {
-    const total = savings.reduce((acc, curr) => acc + curr.amount, 0);
-    const avgInterest = savings.length > 0
-      ? parseFloat((savings.reduce((acc, curr) => acc + curr.interestRate, 0) / savings.length).toFixed(2))
-      : 0;
-    
-    // Group by category to find distribution
-    const distribution: Record<string, number> = {};
-    SAVINGS_TYPES.forEach(t => { distribution[t] = 0; });
-    savings.forEach(item => {
-      if (distribution[item.savingsType] !== undefined) {
-        distribution[item.savingsType] += item.amount;
-      } else {
-        distribution[item.savingsType] = item.amount;
-      }
-    });
+  // Form toggles
+  const [showAddPersonalForm, setShowAddPersonalForm] = useState(false);
+  const [showAddConstForm, setShowAddConstForm] = useState(false);
+  const [showAddDebtForm, setShowAddDebtForm] = useState(false);
+  const [showAddCardForm, setShowAddCardForm] = useState(false);
 
-    // Find highest category
-    let maxCat = 'None';
-    let maxVal = 0;
-    Object.entries(distribution).forEach(([cat, val]) => {
-      if (val > maxVal) {
-        maxVal = val;
-        maxCat = cat;
-      }
-    });
+  // Edit settings toggles
+  const [isEditingTarget, setIsEditingTarget] = useState(false);
+  const [isEditingConstBudget, setIsEditingConstBudget] = useState(false);
 
-    return {
-      total,
-      avgInterest,
-      maxCategory: maxCat,
-      distribution
-    };
-  }, [savings]);
+  // Form states - Personal Expense
+  const [peAmount, setPeAmount] = useState('');
+  const [peCategory, setPeCategory] = useState('Food');
+  const [peDate, setPeDate] = useState('2026-07-12');
+  const [peCardId, setPeCardId] = useState('cash');
+  const [peUsedBy, setPeUsedBy] = useState('Self');
+  const [peNotes, setPeNotes] = useState('');
 
-  const filteredSavings = useMemo(() => {
-    return savings.filter(item => {
-      const matchesType = typeFilter === 'All' || item.savingsType === typeFilter;
-      const matchesPlatform = platformFilter === 'All' || item.platform === platformFilter;
-      return matchesType && matchesPlatform;
-    });
-  }, [savings, typeFilter, platformFilter]);
+  // Form states - Construction Expense
+  const [ceAmount, setCeAmount] = useState('');
+  const [ceCategory, setCeCategory] = useState('Cement');
+  const [ceDate, setCeDate] = useState('2026-07-12');
+  const [ceVendor, setCeVendor] = useState('');
+  const [ceNotes, setCeNotes] = useState('');
+  const [ceStatus, setCeStatus] = useState<'Paid' | 'Pending'>('Paid');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!amount || !interestRate || !createdDate) {
-      alert('Please fill in all required fields (Amount, Interest Rate, Created Date)');
-      return;
+  // Form states - Debt
+  const [dContactName, setDContactName] = useState('');
+  const [dAmount, setDAmount] = useState('');
+  const [dType, setDType] = useState<'Receivable' | 'Payable'>('Receivable');
+  const [dDueDate, setDDueDate] = useState('2026-07-12');
+  const [dNotes, setDNotes] = useState('');
+
+  // Form states - Card
+  const [cName, setCName] = useState('');
+  const [cLastFour, setCLastFour] = useState('');
+  const [cBillingDay, setCBillingDay] = useState('15');
+  const [cDueDay, setCDueDay] = useState('5');
+  const [cLimit, setCLimit] = useState('');
+
+  // Editing budget states
+  const [tempTarget, setTempTarget] = useState('10000');
+  const [tempConstBudget, setTempConstBudget] = useState('5000000');
+
+  // Load data
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      const fetchedCards = await financeService.getCards();
+      const fetchedExpenses = await financeService.getPersonalExpenses();
+      const fetchedTarget = await financeService.getPersonalTarget();
+      const fetchedConst = await financeService.getConstructionExpenses();
+      const fetchedBudget = await financeService.getConstructionBudget();
+      const fetchedDebts = await financeService.getDebts();
+      const fetchedBills = await financeService.getCardBillStatements(selectedMonth);
+
+      setCards(fetchedCards);
+      setPersonalExpenses(fetchedExpenses);
+      setPersonalTarget(fetchedTarget);
+      setConstructionExpenses(fetchedConst);
+      setConstructionBudget(fetchedBudget);
+      setDebts(fetchedDebts);
+      setCardBills(fetchedBills);
+
+      setTempTarget(fetchedTarget.toString());
+      setTempConstBudget(fetchedBudget.toString());
+    } catch (err) {
+      console.error('Error loading dashboard data:', err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const newItem: SavingItem = {
-      id: Date.now().toString(),
-      amount: parseFloat(amount),
-      savingsType,
-      platform,
-      interestRate: parseFloat(interestRate),
-      createdDate,
-      maturityDate: maturityDate || 'N/A',
-      notes: notes || 'No extra notes provided.',
-    };
+  useEffect(() => {
+    loadDashboardData();
+  }, [selectedMonth]);
 
-    setSavings(prev => [newItem, ...prev]);
-    
-    // Reset Form
-    setAmount('');
-    setSavingsType(SAVINGS_TYPES[0]);
-    setPlatform(PLATFORMS[0]);
-    setInterestRate('');
-    setCreatedDate('');
-    setMaturityDate('');
-    setNotes('');
-
-    // Trigger Toast
-    setToastMessage('New investment record saved successfully!');
+  const triggerToast = (msg: string) => {
+    setToastMessage(msg);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
-
-    // Redirect to list
-    setActiveTab('list');
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this savings record?')) {
-      setSavings(prev => prev.filter(item => item.id !== id));
-      setToastMessage('Savings record deleted.');
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
+  // --- Handlers ---
+  const handleAddPersonalExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!peAmount || !peDate) return;
+    try {
+      await financeService.addPersonalExpense({
+        amount: parseFloat(peAmount),
+        category: peCategory,
+        date: peDate,
+        cardId: peCardId,
+        usedBy: peUsedBy || 'Self',
+        notes: peNotes
+      });
+      setPeAmount('');
+      setPeNotes('');
+      setShowAddPersonalForm(false);
+      triggerToast('Personal expense added successfully!');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
     }
   };
 
+  const handleDeletePersonalExpense = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this expense?')) return;
+    try {
+      await financeService.deletePersonalExpense(id);
+      triggerToast('Expense deleted.');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateTarget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = parseFloat(tempTarget);
+    if (isNaN(val) || val <= 0) return;
+    try {
+      await financeService.updatePersonalTarget(val);
+      setPersonalTarget(val);
+      setIsEditingTarget(false);
+      triggerToast('Monthly spending target updated.');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddConstructionExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ceAmount || !ceVendor || !ceDate) return;
+    try {
+      await financeService.addConstructionExpense({
+        amount: parseFloat(ceAmount),
+        category: ceCategory,
+        date: ceDate,
+        vendor: ceVendor,
+        notes: ceNotes,
+        status: ceStatus
+      });
+      setCeAmount('');
+      setCeVendor('');
+      setCeNotes('');
+      setShowAddConstForm(false);
+      triggerToast('Construction log entry created.');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleConstStatus = async (id: string, currentStatus: 'Paid' | 'Pending') => {
+    try {
+      const nextStatus = currentStatus === 'Paid' ? 'Pending' : 'Paid';
+      await financeService.updateConstructionExpenseStatus(id, nextStatus);
+      triggerToast(`Marked construction log as ${nextStatus.toLowerCase()}.`);
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteConstExpense = async (id: string) => {
+    if (!confirm('Delete this construction log entry?')) return;
+    try {
+      await financeService.deleteConstructionExpense(id);
+      triggerToast('Construction log removed.');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateConstBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = parseFloat(tempConstBudget);
+    if (isNaN(val) || val <= 0) return;
+    try {
+      await financeService.updateConstructionBudget(val);
+      setConstructionBudget(val);
+      setIsEditingConstBudget(false);
+      triggerToast('House construction budget updated.');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddDebt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dContactName || !dAmount || !dDueDate) return;
+    try {
+      await financeService.addDebt({
+        contactName: dContactName,
+        amount: parseFloat(dAmount),
+        type: dType,
+        dueDate: dDueDate,
+        notes: dNotes,
+        status: 'Pending'
+      });
+      setDContactName('');
+      setDAmount('');
+      setDNotes('');
+      setShowAddDebtForm(false);
+      triggerToast('Debt ledger entry added.');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleDebtStatus = async (id: string, currentStatus: 'Pending' | 'Paid') => {
+    try {
+      const nextStatus = currentStatus === 'Pending' ? 'Paid' : 'Pending';
+      await financeService.updateDebtStatus(id, nextStatus);
+      triggerToast(`Debt marked as ${nextStatus.toLowerCase()}.`);
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteDebt = async (id: string) => {
+    if (!confirm('Remove this debt ledger entry?')) return;
+    try {
+      await financeService.deleteDebt(id);
+      triggerToast('Debt record deleted.');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cName || !cLastFour || !cLimit) return;
+    try {
+      await financeService.addCard({
+        name: cName,
+        lastFour: cLastFour,
+        billingDay: parseInt(cBillingDay),
+        dueDay: parseInt(cDueDay),
+        creditLimit: parseFloat(cLimit)
+      });
+      setCName('');
+      setCLastFour('');
+      setCBillingDay('15');
+      setCDueDay('5');
+      setCLimit('');
+      setShowAddCardForm(false);
+      triggerToast('Credit card registered.');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handlePayBill = async (cardId: string, month: string, isPaid: boolean) => {
+    try {
+      await financeService.markCardBillAsPaid(cardId, month, isPaid);
+      triggerToast(isPaid ? 'Card bill marked as Paid.' : 'Card bill marked as Unpaid.');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // --- Calculations & Filtered values ---
+
+  // Personal Month expenses calculations
+  const monthlyPersonalExpenses = useMemo(() => {
+    return personalExpenses.filter(e => e.date.startsWith(selectedMonth));
+  }, [personalExpenses, selectedMonth]);
+
+  const filteredPersonalExpenses = useMemo(() => {
+    return personalExpenses.filter(e => {
+      const matchesMonth = e.date.startsWith(selectedMonth);
+      const matchesCategory = personalCategoryFilter === 'All' || e.category === personalCategoryFilter;
+      const matchesCard = personalCardFilter === 'All' || e.cardId === personalCardFilter;
+      return matchesMonth && matchesCategory && matchesCard;
+    });
+  }, [personalExpenses, selectedMonth, personalCategoryFilter, personalCardFilter]);
+
+  const totalMonthlySpend = useMemo(() => {
+    return monthlyPersonalExpenses.reduce((sum, e) => sum + e.amount, 0);
+  }, [monthlyPersonalExpenses]);
+
+  const personalCategoryDistribution = useMemo(() => {
+    const dist: Record<string, number> = {};
+    monthlyPersonalExpenses.forEach(e => {
+      dist[e.category] = (dist[e.category] || 0) + e.amount;
+    });
+    return dist;
+  }, [monthlyPersonalExpenses]);
+
+  // Who used my card distribution (in current month)
+  const userCardUsage = useMemo(() => {
+    const usage: Record<string, number> = {};
+    monthlyPersonalExpenses
+      .filter(e => e.cardId !== 'cash')
+      .forEach(e => {
+        usage[e.usedBy] = (usage[e.usedBy] || 0) + e.amount;
+      });
+    return usage;
+  }, [monthlyPersonalExpenses]);
+
+  // Construction math
+  const totalConstructionSpent = useMemo(() => {
+    return constructionExpenses
+      .filter(e => e.status === 'Paid')
+      .reduce((sum, e) => sum + e.amount, 0);
+  }, [constructionExpenses]);
+
+  const totalConstructionPending = useMemo(() => {
+    return constructionExpenses
+      .filter(e => e.status === 'Pending')
+      .reduce((sum, e) => sum + e.amount, 0);
+  }, [constructionExpenses]);
+
+  const constructionCategoryDistribution = useMemo(() => {
+    const dist: Record<string, number> = {};
+    constructionExpenses.forEach(e => {
+      dist[e.category] = (dist[e.category] || 0) + e.amount;
+    });
+    return dist;
+  }, [constructionExpenses]);
+
+  // Debt math
+  const totalReceivables = useMemo(() => {
+    return debts
+      .filter(d => d.type === 'Receivable' && d.status === 'Pending')
+      .reduce((sum, d) => sum + d.amount, 0);
+  }, [debts]);
+
+  const totalPayables = useMemo(() => {
+    return debts
+      .filter(d => d.type === 'Payable' && d.status === 'Pending')
+      .reduce((sum, d) => sum + d.amount, 0);
+  }, [debts]);
+
+  const netDebtValue = totalReceivables - totalPayables;
+
+  // Month options for dropdown selection
+  const monthOptions = useMemo(() => {
+    const options = [];
+    const base = new Date();
+    base.setFullYear(2026, 6, 1); // July 2026
+    for (let i = -3; i <= 3; i++) {
+      const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      options.push({ val, label });
+    }
+    return options;
+  }, []);
+
+  const cardMap = useMemo(() => {
+    const map = new Map<string, CardInfo>();
+    cards.forEach(c => map.set(c.id, c));
+    return map;
+  }, [cards]);
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased pb-12">
-      {/* Upper banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white py-8 px-4 md:py-12 md:px-6 shadow-md">
-        <div className="mx-auto max-w-6xl flex flex-col gap-6">
+    <div className="min-h-screen bg-[color:var(--claude-bg)] text-[color:var(--claude-ink)] font-sans antialiased pb-16 transition-colors duration-300">
+      
+      {/* Editorial Claude Header */}
+      <header className="border-b border-[color:var(--claude-border)] bg-[color:var(--claude-card)] py-8">
+        <div className="mx-auto max-w-6xl px-6 md:px-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <span className="text-xs uppercase tracking-[0.25em] text-emerald-400 font-semibold">
-              Personal Finance Manager
+            <span className="text-[10px] tracking-[0.3em] font-semibold text-[color:var(--claude-accent)] uppercase block mb-1">
+              Private Ledger
             </span>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-white md:text-4xl">
-              Finance Buddy Dashboard
+            <h1 className="text-3xl md:text-4xl font-serif font-medium tracking-tight text-[color:var(--claude-ink)]">
+              Anthropic Finance
             </h1>
-            <p className="mt-2 text-slate-300 text-sm md:text-base max-w-xl">
-              Track and optimize your savings portfolio. Keep tabs on Fixed Deposits, Mutual Funds, Stocks, and Assets in one central view.
+            <p className="text-xs md:text-sm text-[color:var(--claude-ink-sub)] mt-1 max-w-xl">
+              Redesigned companion dashboard for personal monthly targets, construction projects, credit cards, and debt ledgers.
             </p>
           </div>
           
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
-                activeTab === 'overview'
-                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                  : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-              Overview
-            </button>
-            <button
-              onClick={() => setActiveTab('list')}
-              className={`px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
-                activeTab === 'list'
-                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                  : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-              Savings List
-            </button>
-            <button
-              onClick={() => setActiveTab('add')}
-              className={`px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
-                activeTab === 'add'
-                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                  : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Add Saving
-            </button>
+          {/* Month Selector */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] px-3 py-2 rounded-xl">
+              <label htmlFor="globalMonth" className="text-xs font-medium text-[color:var(--claude-ink-sub)]">Period:</label>
+              <select
+                id="globalMonth"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="bg-transparent text-xs font-semibold focus:outline-none border-none cursor-pointer"
+              >
+                {monthOptions.map(opt => (
+                  <option key={opt.val} value={opt.val}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main container */}
-      <div className="mx-auto max-w-6xl px-6 mt-8">
+        {/* Tab Controls */}
+        <div className="w-full mx-auto max-w-6xl mt-8 flex gap-1 border-b border-[color:var(--claude-border)]/50 overflow-x-auto scrollbar-none flex-nowrap px-6 md:px-12">
+          {[
+            { id: 'overview', label: 'Overview', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg> },
+            { id: 'personal', label: 'Personal Expenses', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> },
+            { id: 'cards', label: 'Card Statements', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> },
+            { id: 'construction', label: 'House Construction', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+            { id: 'debts', label: 'Debts Ledger', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 ${
+                activeTab === tab.id
+                  ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold'
+                  : 'border-transparent text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)]'
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Main dashboard content */}
+      <main className="mx-auto max-w-6xl px-6 md:px-12 mt-8">
         
-        {/* KPI Cards */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition duration-300">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Portfolio</p>
-            <h3 className="text-3xl font-bold text-slate-900 mt-2">
-              ₹{stats.total.toLocaleString('en-IN')}
-            </h3>
-            <span className="inline-block mt-3 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
-              ↗ Live Allocation
-            </span>
+        {loading ? (
+          <div className="flex flex-col justify-center items-center py-20 gap-4">
+            <div className="w-8 h-8 rounded-full border-2 border-[color:var(--claude-border)] border-t-[color:var(--claude-accent)] animate-spin"></div>
+            <p className="text-xs font-semibold text-[color:var(--claude-ink-sub)] uppercase tracking-wider">Syncing Ledger...</p>
           </div>
+        ) : (
+          <div>
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+              <OverviewTab
+                personalTarget={personalTarget}
+                totalMonthlySpend={totalMonthlySpend}
+                constructionBudget={constructionBudget}
+                totalConstructionSpent={totalConstructionSpent}
+                netDebtValue={netDebtValue}
+                totalReceivables={totalReceivables}
+                totalPayables={totalPayables}
+                cardBills={cardBills}
+                isEditingTarget={isEditingTarget}
+                setIsEditingTarget={setIsEditingTarget}
+                tempTarget={tempTarget}
+                setTempTarget={setTempTarget}
+                handleUpdateTarget={handleUpdateTarget}
+                isEditingConstBudget={isEditingConstBudget}
+                setIsEditingConstBudget={setIsEditingConstBudget}
+                tempConstBudget={tempConstBudget}
+                setTempConstBudget={setTempConstBudget}
+                handleUpdateConstBudget={handleUpdateConstBudget}
+                handlePayBill={handlePayBill}
+                selectedMonth={selectedMonth}
+              />
+            )}
 
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition duration-300">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Average Yield</p>
-            <h3 className="text-3xl font-bold text-slate-900 mt-2">{stats.avgInterest}%</h3>
-            <span className="inline-block mt-3 text-xs font-semibold text-sky-600 bg-sky-50 px-2.5 py-1 rounded-full">
-              ~ Weighted Average
-            </span>
+            {/* Personal Expenses Tab */}
+            {activeTab === 'personal' && (
+              <PersonalTab
+                cards={cards}
+                personalTarget={personalTarget}
+                isEditingTarget={isEditingTarget}
+                setIsEditingTarget={setIsEditingTarget}
+                tempTarget={tempTarget}
+                setTempTarget={setTempTarget}
+                handleUpdateTarget={handleUpdateTarget}
+                monthlyPersonalExpenses={monthlyPersonalExpenses}
+                filteredPersonalExpenses={filteredPersonalExpenses}
+                totalMonthlySpend={totalMonthlySpend}
+                personalCategoryDistribution={personalCategoryDistribution}
+                userCardUsage={userCardUsage}
+                personalCategoryFilter={personalCategoryFilter}
+                setPersonalCategoryFilter={setPersonalCategoryFilter}
+                personalCardFilter={personalCardFilter}
+                setPersonalCardFilter={setPersonalCardFilter}
+                selectedMonth={selectedMonth}
+                cardMap={cardMap}
+                showAddPersonalForm={showAddPersonalForm}
+                setShowAddPersonalForm={setShowAddPersonalForm}
+                handleAddPersonalExpense={handleAddPersonalExpense}
+                handleDeletePersonalExpense={handleDeletePersonalExpense}
+                peAmount={peAmount}
+                setPeAmount={setPeAmount}
+                peCategory={peCategory}
+                setPeCategory={setPeCategory}
+                peDate={peDate}
+                setPeDate={setPeDate}
+                peCardId={peCardId}
+                setPeCardId={setPeCardId}
+                peUsedBy={peUsedBy}
+                setPeUsedBy={setPeUsedBy}
+                peNotes={peNotes}
+                setPeNotes={setPeNotes}
+              />
+            )}
+
+            {/* Credit Cards Tab */}
+            {activeTab === 'cards' && (
+              <CardsTab
+                cards={cards}
+                cardBills={cardBills}
+                cardMap={cardMap}
+                selectedMonth={selectedMonth}
+                showAddCardForm={showAddCardForm}
+                setShowAddCardForm={setShowAddCardForm}
+                handleAddCard={handleAddCard}
+                handlePayBill={handlePayBill}
+                cName={cName}
+                setCName={setCName}
+                cLastFour={cLastFour}
+                setCLastFour={setCLastFour}
+                cBillingDay={cBillingDay}
+                setCBillingDay={setCBillingDay}
+                cDueDay={cDueDay}
+                setCDueDay={setCDueDay}
+                cLimit={cLimit}
+                setCLimit={setCLimit}
+              />
+            )}
+
+            {/* House Construction Tab */}
+            {activeTab === 'construction' && (
+              <ConstructionTab
+                constructionExpenses={constructionExpenses}
+                constructionBudget={constructionBudget}
+                totalConstructionSpent={totalConstructionSpent}
+                totalConstructionPending={totalConstructionPending}
+                constructionCategoryDistribution={constructionCategoryDistribution}
+                isEditingConstBudget={isEditingConstBudget}
+                setIsEditingConstBudget={setIsEditingConstBudget}
+                tempConstBudget={tempConstBudget}
+                setTempConstBudget={setTempConstBudget}
+                handleUpdateConstBudget={handleUpdateConstBudget}
+                showAddConstForm={showAddConstForm}
+                setShowAddConstForm={setShowAddConstForm}
+                handleAddConstructionExpense={handleAddConstructionExpense}
+                handleToggleConstStatus={handleToggleConstStatus}
+                handleDeleteConstExpense={handleDeleteConstExpense}
+                ceAmount={ceAmount}
+                setCeAmount={setCeAmount}
+                ceCategory={ceCategory}
+                setCeCategory={setCeCategory}
+                ceDate={ceDate}
+                setCeDate={setCeDate}
+                ceVendor={ceVendor}
+                setCeVendor={setCeVendor}
+                ceNotes={ceNotes}
+                setCeNotes={setCeNotes}
+                ceStatus={ceStatus}
+                setCeStatus={setCeStatus}
+              />
+            )}
+
+            {/* Debts Tab */}
+            {activeTab === 'debts' && (
+              <DebtsTab
+                debts={debts}
+                totalReceivables={totalReceivables}
+                totalPayables={totalPayables}
+                netDebtValue={netDebtValue}
+                showAddDebtForm={showAddDebtForm}
+                setShowAddDebtForm={setShowAddDebtForm}
+                handleAddDebt={handleAddDebt}
+                handleToggleDebtStatus={handleToggleDebtStatus}
+                handleDeleteDebt={handleDeleteDebt}
+                dContactName={dContactName}
+                setDContactName={setDContactName}
+                dAmount={dAmount}
+                setDAmount={setDAmount}
+                dType={dType}
+                setDType={setDType}
+                dDueDate={dDueDate}
+                setDDueDate={setDDueDate}
+                dNotes={dNotes}
+                setDNotes={setDNotes}
+              />
+            )}
           </div>
+        )}
+      </main>
 
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition duration-300">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Primary Asset</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-2 truncate">{stats.maxCategory}</h3>
-            <span className="inline-block mt-3 text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
-              ⚡ Top Allocator
-            </span>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition duration-300">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Assets</p>
-            <h3 className="text-3xl font-bold text-slate-900 mt-2">{savings.length}</h3>
-            <span className="inline-block mt-3 text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
-              ✔ 100% Client-Side
-            </span>
-          </div>
-        </div>
-
-        {/* Tab contents */}
-        <div className="mt-8">
-          
-          {/* TAB 1: OVERVIEW */}
-          {activeTab === 'overview' && (
-            <div className="grid gap-8 lg:grid-cols-3">
-              {/* Asset Allocation */}
-              <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm lg:col-span-2">
-                <h3 className="text-lg font-bold text-slate-900">Portfolio Allocation</h3>
-                <p className="text-sm text-slate-500 mt-1">Visual breakdown of your saving accounts by asset type.</p>
-                
-                <div className="mt-8 space-y-5">
-                  {SAVINGS_TYPES.map(type => {
-                    const amount = stats.distribution[type] || 0;
-                    const percentage = stats.total > 0 ? (amount / stats.total) * 100 : 0;
-                    
-                    // Colors
-                    let color = 'bg-blue-600';
-                    if (type === 'Mutual Funds') color = 'bg-violet-600';
-                    if (type === 'Stocks') color = 'bg-emerald-500';
-                    if (type === 'Real Estate') color = 'bg-rose-500';
-                    if (type === 'Gold/Silver') color = 'bg-amber-400';
-
-                    return (
-                      <div key={type}>
-                        <div className="flex justify-between text-sm font-medium mb-1">
-                          <span className="text-slate-700">{type}</span>
-                          <span className="text-slate-900">
-                            ₹{amount.toLocaleString('en-IN')} ({percentage.toFixed(1)}%)
-                          </span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${color} transition-all duration-1000`}
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Quick Info & Actions */}
-              <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Savings Breakdown</h3>
-                  <p className="text-sm text-slate-500 mt-1">Portfolio statistics summary.</p>
-                  
-                  <div className="mt-6 space-y-4">
-                    <div className="flex justify-between border-b border-slate-100 pb-3 text-sm">
-                      <span className="text-slate-500">FD Rate High:</span>
-                      <span className="font-semibold text-slate-800">7.1%</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-100 pb-3 text-sm">
-                      <span className="text-slate-500">Market Rate High:</span>
-                      <span className="font-semibold text-emerald-600">15.4%</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-100 pb-3 text-sm">
-                      <span className="text-slate-500">Total Capital:</span>
-                      <span className="font-semibold text-slate-800">
-                        ₹{stats.total.toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-slate-100">
-                  <button
-                    onClick={() => setActiveTab('add')}
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-2xl transition duration-300 flex items-center justify-center gap-2"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                    Record New Saving
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: SAVINGS LIST */}
-          {activeTab === 'list' && (
-            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-              {/* Header Filters */}
-              <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Savings Records</h3>
-                  <p className="text-sm text-slate-500 mt-1">Manage and track individual investment records.</p>
-                </div>
-
-                <div className="flex flex-wrap gap-3 items-center">
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="font-semibold text-slate-400 uppercase">Type:</span>
-                    <select
-                      value={typeFilter}
-                      onChange={(e) => setTypeFilter(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="All">All Types</option>
-                      {SAVINGS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="font-semibold text-slate-400 uppercase">Platform:</span>
-                    <select
-                      value={platformFilter}
-                      onChange={(e) => setPlatformFilter(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="All">All Platforms</option>
-                      {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Table wrapper */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <th className="px-6 py-4">Saving Type</th>
-                      <th className="px-6 py-4">Platform</th>
-                      <th className="px-6 py-4">Amount</th>
-                      <th className="px-6 py-4">Interest Rate</th>
-                      <th className="px-6 py-4">Created Date</th>
-                      <th className="px-6 py-4">Maturity Date</th>
-                      <th className="px-6 py-4">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm">
-                    {filteredSavings.length > 0 ? (
-                      filteredSavings.map((item) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50 transition">
-                          <td className="px-6 py-4">
-                            <span className="font-bold text-slate-900">{item.savingsType}</span>
-                            <p className="text-xs text-slate-400 mt-1 max-w-[200px] truncate">{item.notes}</p>
-                          </td>
-                          <td className="px-6 py-4 text-slate-600 font-medium">{item.platform}</td>
-                          <td className="px-6 py-4 font-bold text-slate-900">
-                            ₹{item.amount.toLocaleString('en-IN')}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-                              {item.interestRate}%
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-slate-500">{item.createdDate}</td>
-                          <td className="px-6 py-4">
-                            <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
-                              item.maturityDate === 'N/A'
-                                ? 'bg-slate-100 text-slate-500'
-                                : 'bg-amber-50 text-amber-700'
-                            }`}>
-                              {item.maturityDate}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <button
-                              onClick={() => handleDelete(item.id)}
-                              className="text-rose-600 hover:text-rose-800 hover:bg-rose-50 p-1.5 rounded-xl transition duration-200"
-                              title="Delete Record"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium">
-                          No savings records found matching the filters.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: ADD SAVING FORM */}
-          {activeTab === 'add' && (
-            <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-sm max-w-2xl mx-auto">
-              <h3 className="text-xl font-bold text-slate-900">Add Savings Record</h3>
-              <p className="text-sm text-slate-500 mt-1">Create a new local investment entry. Submissions update the table dynamically in state.</p>
-              
-              <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  {/* Amount */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="amount" className="text-sm font-semibold text-slate-700">
-                      Amount (₹) *
-                    </label>
-                    <input
-                      id="amount"
-                      type="number"
-                      required
-                      placeholder="e.g. 50000"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                    />
-                  </div>
-
-                  {/* Interest Rate */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="interest" className="text-sm font-semibold text-slate-700">
-                      Annual Yield (%) *
-                    </label>
-                    <input
-                      id="interest"
-                      type="number"
-                      step="0.01"
-                      required
-                      placeholder="e.g. 7.5"
-                      value={interestRate}
-                      onChange={(e) => setInterestRate(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                    />
-                  </div>
-
-                  {/* Savings Type */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="type" className="text-sm font-semibold text-slate-700">
-                      Savings Category *
-                    </label>
-                    <select
-                      id="type"
-                      value={savingsType}
-                      onChange={(e) => setSavingsType(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-950 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                    >
-                      {SAVINGS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </div>
-
-                  {/* Platform */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="platform" className="text-sm font-semibold text-slate-700">
-                      Platform *
-                    </label>
-                    <select
-                      id="platform"
-                      value={platform}
-                      onChange={(e) => setPlatform(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-950 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                    >
-                      {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                  </div>
-
-                  {/* Created Date */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="created" className="text-sm font-semibold text-slate-700">
-                      Investment Date *
-                    </label>
-                    <input
-                      id="created"
-                      type="date"
-                      required
-                      value={createdDate}
-                      onChange={(e) => setCreatedDate(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                    />
-                  </div>
-
-                  {/* Maturity Date */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="maturity" className="text-sm font-semibold text-slate-700">
-                      Maturity Date (Optional)
-                    </label>
-                    <input
-                      id="maturity"
-                      type="date"
-                      value={maturityDate}
-                      onChange={(e) => setMaturityDate(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                    />
-                  </div>
-                </div>
-
-                {/* Notes */}
-                <div className="space-y-1.5">
-                  <label htmlFor="notes" className="text-sm font-semibold text-slate-700">
-                    Memo / Notes
-                  </label>
-                  <textarea
-                    id="notes"
-                    rows={3}
-                    placeholder="Describe this investment..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-                  />
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 rounded-2xl transition duration-300 shadow-md shadow-emerald-500/10"
-                  >
-                    Save Investment
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('overview')}
-                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl transition duration-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-        </div>
-      </div>
-
-      {/* Success Toast */}
+      {/* Elegant Toast Success Notification */}
       {showToast && (
-        <div className="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce z-50">
-          <span className="flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+        <div className="fixed bottom-6 right-6 bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] text-[color:var(--claude-ink)] px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-fade-in z-50 transition duration-300">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[color:var(--claude-accent)] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[color:var(--claude-accent)]"></span>
           </span>
-          <p className="text-sm font-medium">{toastMessage}</p>
+          <p className="text-xs font-semibold">{toastMessage}</p>
         </div>
       )}
+
     </div>
   );
 }

@@ -5,17 +5,33 @@
 @tailwind utilities;
 
 :root {
-  --canvas: #f5efe6;
-  --canvas-strong: #fffaf5;
-  --ink: #102a43;
+  --canvas: #f9f6f0;
+  --canvas-strong: #f3eee3;
+  --ink: #191919;
   --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --claude-bg: #f9f6f0;
+  --claude-bg-strong: #f3eee3;
+  --claude-card: #ffffff;
+  --claude-ink: #191919;
+  --claude-ink-sub: #6b6863;
+  --claude-accent: #d97706;
+  --claude-accent-light: #fef3c7;
+  --claude-border: #e8e5df;
 }
 
 /* ─── Dark mode CSS variables ─────────────────────────────────────────────── */
 html.dark {
-  --canvas: #0f172a;
-  --canvas-strong: #1e293b;
-  --ink: #e2e8f0;
+  --canvas: #141413;
+  --canvas-strong: #1c1c1a;
+  --ink: #e6e4df;
+  --claude-bg: #141413;
+  --claude-bg-strong: #1c1c1a;
+  --claude-card: #1e1e1d;
+  --claude-ink: #e6e4df;
+  --claude-ink-sub: #9c9993;
+  --claude-accent: #f59e0b;
+  --claude-accent-light: rgba(245, 158, 11, 0.15);
+  --claude-border: #2e2d2a;
 }
 
 @layer base {
@@ -70,43 +86,43 @@ html.dark body {
   color: #e2e8f0;
 }
 
-/* ─── Finance Dashboard Dark Mode ─────────────────────────────────────────── */
+/* ─── Finance Dashboard Claude Theme Overrides ────────────────────────────── */
 html.dark .min-h-screen.bg-slate-50 {
-  background-color: #0f172a !important;
-  color: #e2e8f0;
+  background-color: var(--claude-bg) !important;
+  color: var(--claude-ink);
 }
 
 html.dark .bg-white {
-  background-color: #1e293b !important;
+  background-color: var(--claude-card) !important;
 }
 
 html.dark .text-slate-800,
 html.dark .text-slate-900,
 html.dark .text-slate-700 {
-  color: #e2e8f0 !important;
+  color: var(--claude-ink) !important;
 }
 
 html.dark .text-slate-500,
 html.dark .text-slate-400 {
-  color: #94a3b8 !important;
+  color: var(--claude-ink-sub) !important;
 }
 
 html.dark .text-slate-600 {
-  color: #cbd5e1 !important;
+  color: var(--claude-ink-sub) !important;
 }
 
 html.dark .border-slate-200,
 html.dark .border-slate-200\/80,
 html.dark .border-slate-100 {
-  border-color: #334155 !important;
+  border-color: var(--claude-border) !important;
 }
 
 html.dark .bg-slate-50 {
-  background-color: #1e293b !important;
+  background-color: var(--claude-bg-strong) !important;
 }
 
 html.dark .bg-slate-100 {
-  background-color: #334155 !important;
+  background-color: var(--claude-border) !important;
 }
 
 html.dark .bg-emerald-50 {
@@ -126,17 +142,26 @@ html.dark .bg-amber-50 {
 }
 
 html.dark .divide-slate-100 > * + * {
-  border-color: #334155 !important;
+  border-color: var(--claude-border) !important;
 }
 
 html.dark select,
 html.dark input,
 html.dark textarea {
-  background-color: #1e293b !important;
-  border-color: #475569 !important;
-  color: #e2e8f0 !important;
+  background-color: var(--claude-bg-strong) !important;
+  border-color: var(--claude-border) !important;
+  color: var(--claude-ink) !important;
 }
 
 html.dark select option {
-  background-color: #1e293b;
+  background-color: var(--claude-card);
+}
+
+/* Hide scrollbars but keep functionality */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none;  /* Firefox */
 }
