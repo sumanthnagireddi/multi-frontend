@@ -28,3 +28,14 @@
     transform: translateY(0);
   }
 }
+
+.typing-cursor {
+  animation: cursor-blink 0.8s step-end infinite;
+  display: inline-block;
+  margin-left: 0.5px;
+}
+
+@keyframes cursor-blink {
+  from, to { opacity: 0; }
+  50% { opacity: 1; }
+}

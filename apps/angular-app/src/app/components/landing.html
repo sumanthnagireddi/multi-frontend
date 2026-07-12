@@ -13,17 +13,20 @@
         <p
           class="text-4xl font-semibold md:font-bold md:text-5xl md:tracking-[-0.02em] lg:text-6xl lg:leading-[72px] text-slate-900 flex items-center gap-x-3 whitespace-nowrap">
           <span>Hi, I'm Sumanth Nagireddi</span>
-        
+
         </p>
 
         <p class="text-base font-normal py-4 text-slate-700">
-          A passionate Fullstack developer specializing in <span class="font-medium text-red-700">MEAN</span>.
+          A passionate Fullstack developer specializing in <span
+            class="font-medium bg-gradient-to-r bg-clip-text text-transparent w-[100px]"
+            [ngClass]="currentRoleClass()">{{displayedRole()}}</span><span
+            class="typing-cursor font-medium text-slate-800">|</span>.
           With a keen eye for design and a commitment to creating seamless user experiences, I bring over
           {{ calculateExperience() }} years of expertise in crafting dynamic and responsive web applications.
           I excel in harnessing the power of Angular & React to build robust and scalable solutions. My proficiency
           extends to HTML, CSS, JavaScript, Angular, React, Node.js, Express, and TypeScript, ensuring that every
           project I undertake is not only functional but also visually appealing. I have a deep understanding of
-          front-end architecture, state management, and the latest web development trends.
+          full stack architecture and the latest web development trends.
         </p>
 
         <div class="flex flex-col gap-2 py-6 text-slate-700">

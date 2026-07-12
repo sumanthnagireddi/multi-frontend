@@ -9,31 +9,70 @@ import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
   styleUrls: ['./landing.css'],
 })
 export class LandingComponent implements OnInit, OnDestroy {
-  roles = ['Angular', 'Node Js', 'Nest Js', 'React', 'AI Fullstack']
+  roles = ['Angular', 'React','Node JS', 'Nest JS', 'React', 'AI Native']
   roleIndex = signal(0);
 
   currentRole = computed(() => this.roles[this.roleIndex()]);
   currentRoleClass = computed(() => {
     const idx = this.roleIndex();
     if (idx === 0) return 'from-blue-600 to-indigo-600';
-    if (idx === 1) return 'from-violet-600 to-fuchsia-600';
-    return 'from-emerald-500 to-teal-500';
+    if (idx === 1 || idx === 4) return 'from-violet-600 to-fuchsia-600';
+    if (idx === 2 || idx === 3) return 'from-emerald-500 to-teal-500';
+    return 'from-amber-500 to-orange-500';
   });
 
-  private intervalId: any;
+  displayedRole = signal('');
+  private isDestroyed = false;
+  private timerId: any;
 
+  // Typewriter initializer hook
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
-      this.intervalId = setInterval(() => {
-        this.roleIndex.update(idx => (idx + 1) % this.roles.length);
-      }, 2000);
+      this.runTypewriter();
     }
   }
 
   ngOnDestroy(): void {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
+    this.isDestroyed = true;
+    if (this.timerId) {
+      clearTimeout(this.timerId);
     }
+  }
+
+  private async runTypewriter() {
+    let currentIdx = 0;
+    while (!this.isDestroyed) {
+      const fullText = this.roles[currentIdx];
+      this.roleIndex.set(currentIdx);
+
+      // 1. Type word letter-by-letter
+      for (let i = 0; i <= fullText.length; i++) {
+        if (this.isDestroyed) return;
+        this.displayedRole.set(fullText.slice(0, i));
+        await this.delay(120);
+      }
+
+      // 2. Pause when fully typed
+      await this.delay(1800);
+
+      // 3. Delete word letter-by-letter
+      for (let i = fullText.length; i >= 0; i--) {
+        if (this.isDestroyed) return;
+        this.displayedRole.set(fullText.slice(0, i));
+        await this.delay(60);
+      }
+
+      // 4. Brief pause before next word
+      await this.delay(400);
+
+      currentIdx = (currentIdx + 1) % this.roles.length;
+    }
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => {
+      this.timerId = setTimeout(resolve, ms);
+    });
   }
 
   calculateExperience(): number {
