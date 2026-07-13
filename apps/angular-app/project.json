@@ -15,6 +15,7 @@
         "outputPath": "dist/apps/angular-app",
         "browser": "apps/angular-app/src/main.ts",
         "tsConfig": "apps/angular-app/tsconfig.app.json",
+        "serviceWorker": "apps/angular-app/ngsw-config.json",
         "assets": [
           {
             "glob": "**/*",

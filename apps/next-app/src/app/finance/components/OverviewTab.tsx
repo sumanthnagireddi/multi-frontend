@@ -1,11 +1,9 @@
-import React from 'react';
-import { CardBillStatement } from '../services';
+import React, { useState } from 'react';
+import { CardBillStatement, ConstructionExpense } from '../services';
 
 interface OverviewTabProps {
   personalTarget: number;
   totalMonthlySpend: number;
-  constructionBudget: number;
-  totalConstructionSpent: number;
   netDebtValue: number;
   totalReceivables: number;
   totalPayables: number;
@@ -15,20 +13,18 @@ interface OverviewTabProps {
   tempTarget: string;
   setTempTarget: (val: string) => void;
   handleUpdateTarget: (e: React.FormEvent) => void;
-  isEditingConstBudget: boolean;
-  setIsEditingConstBudget: (editing: boolean) => void;
-  tempConstBudget: string;
-  setTempConstBudget: (val: string) => void;
-  handleUpdateConstBudget: (e: React.FormEvent) => void;
   handlePayBill: (cardId: string, month: string, isPaid: boolean) => void;
   selectedMonth: string;
+
+  // Dynamic Construction Projects
+  constructionProjects: Array<{ key: string; name: string; budget: number; id: string }>;
+  constructionExpenses: ConstructionExpense[];
+  handleUpdateProjectBudget: (key: string, budget: number) => void;
 }
 
 export default function OverviewTab({
   personalTarget,
   totalMonthlySpend,
-  constructionBudget,
-  totalConstructionSpent,
   netDebtValue,
   totalReceivables,
   totalPayables,
@@ -38,14 +34,41 @@ export default function OverviewTab({
   tempTarget,
   setTempTarget,
   handleUpdateTarget,
-  isEditingConstBudget,
-  setIsEditingConstBudget,
-  tempConstBudget,
-  setTempConstBudget,
-  handleUpdateConstBudget,
   handlePayBill,
-  selectedMonth
+  selectedMonth,
+  constructionProjects,
+  constructionExpenses,
+  handleUpdateProjectBudget
 }: OverviewTabProps) {
+
+  // Local editing budget state for individual projects
+  const [editingProjectKey, setEditingProjectKey] = useState<string | null>(null);
+  const [tempProjBudget, setTempProjBudget] = useState('');
+
+  // Calculate combined construction values
+  const combinedSpent = constructionExpenses
+    .filter(e => e.category !== 'system_project_metadata' && e.status && e.status.toLowerCase() === 'paid')
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const combinedPending = constructionExpenses
+    .filter(e => e.category !== 'system_project_metadata' && e.status && e.status.toLowerCase() === 'pending')
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const combinedBudget = constructionProjects.reduce((sum, p) => sum + p.budget, 0);
+
+  const handleEditBudgetClick = (projKey: string, currentBudget: number) => {
+    setEditingProjectKey(projKey);
+    setTempProjBudget(currentBudget.toString());
+  };
+
+  const handleSaveBudget = (e: React.FormEvent, projKey: string) => {
+    e.preventDefault();
+    const val = parseFloat(tempProjBudget);
+    if (isNaN(val) || val <= 0) return;
+    handleUpdateProjectBudget(projKey, val);
+    setEditingProjectKey(null);
+  };
+
   return (
     <div className="space-y-8">
       
@@ -107,57 +130,52 @@ export default function OverviewTab({
           </div>
         </div>
 
-        {/* House Construction target indicator */}
+        {/* Combined House Construction target indicator */}
         <div className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] p-6 rounded-2xl shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center">
-              <span className="text-[10px] font-semibold text-[color:var(--claude-ink-sub)] uppercase tracking-wider">House Construction</span>
+              <span className="text-[10px] font-semibold text-[color:var(--claude-ink-sub)] uppercase tracking-wider">Building Projects (Total)</span>
               <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-full">
-                Ongoing Project
+                {constructionProjects.length} Active
               </span>
             </div>
 
-            <div className="mt-4">
-              <p className="text-xs text-[color:var(--claude-ink-sub)]">Paid Out So Far</p>
-              <h3 className="text-3xl font-sans font-semibold tracking-tight mt-1">₹{totalConstructionSpent.toLocaleString('en-IN')}</h3>
+            <div className="mt-4 space-y-2">
+              <div>
+                <p className="text-xs text-[color:var(--claude-ink-sub)]">Paid Out (All Projects)</p>
+                <h3 className="text-3xl font-sans font-semibold tracking-tight mt-0.5 text-emerald-600">₹{combinedSpent.toLocaleString('en-IN')}</h3>
+              </div>
+              <div className="flex justify-between items-center text-xs border-t border-[color:var(--claude-border)]/50 pt-2">
+                <div>
+                  <span className="text-[9px] text-[color:var(--claude-ink-sub)] block uppercase font-medium">Pending:</span>
+                  <span className="font-semibold text-rose-600">₹{combinedPending.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[9px] text-[color:var(--claude-ink-sub)] block uppercase font-medium">Total Committed:</span>
+                  <span className="font-semibold text-[color:var(--claude-ink)]">₹{(combinedSpent + combinedPending).toLocaleString('en-IN')}</span>
+                </div>
+              </div>
               
-              {isEditingConstBudget ? (
-                <form onSubmit={handleUpdateConstBudget} className="mt-2 flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={tempConstBudget}
-                    onChange={(e) => setTempConstBudget(e.target.value)}
-                    className="bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-lg px-2 py-1 text-xs w-32 focus:outline-none focus:ring-1 focus:ring-[color:var(--claude-accent)] font-semibold"
-                  />
-                  <button type="submit" className="text-[10px] bg-[color:var(--claude-accent)] text-white px-2 py-1 rounded hover:bg-[color:var(--claude-accent)]/85 font-semibold">Save</button>
-                  <button type="button" onClick={() => { setIsEditingConstBudget(false); setTempConstBudget(constructionBudget.toString()); }} className="text-[10px] text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)] font-semibold">Cancel</button>
-                </form>
-              ) : (
-                <p className="text-xs text-[color:var(--claude-ink-sub)] mt-1 flex items-center gap-1.5">
-                  Budget: <span className="font-semibold text-[color:var(--claude-ink)]">₹{constructionBudget.toLocaleString('en-IN')}</span>
-                  <button
-                    onClick={() => { setIsEditingConstBudget(true); setTempConstBudget(constructionBudget.toString()); }}
-                    className="text-[10px] text-[color:var(--claude-accent)] hover:underline flex items-center gap-0.5 ml-1"
-                    title="Edit construction budget"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    Edit
-                  </button>
-                </p>
-              )}
+              <p className="text-xs text-[color:var(--claude-ink-sub)] mt-1 pt-1">
+                Combined Budget: <span className="font-semibold text-[color:var(--claude-ink)]">₹{combinedBudget.toLocaleString('en-IN')}</span>
+              </p>
             </div>
           </div>
 
-          <div className="mt-6">
-            <div className="w-full bg-[color:var(--claude-bg-strong)] h-2 rounded-full overflow-hidden">
+          <div className="mt-4">
+            <div className="w-full bg-[color:var(--claude-bg-strong)] h-2 rounded-full overflow-hidden flex border border-[color:var(--claude-border)]/50">
               <div
                 className="h-full bg-emerald-600 transition-all duration-700"
-                style={{ width: `${Math.min((totalConstructionSpent / constructionBudget) * 100, 100)}%` }}
+                style={{ width: `${Math.min((combinedSpent / (combinedBudget || 1)) * 100, 100)}%` }}
+              ></div>
+              <div
+                className="h-full bg-amber-500 transition-all duration-700"
+                style={{ width: `${Math.min((combinedPending / (combinedBudget || 1)) * 100, 100 - (combinedSpent / (combinedBudget || 1)) * 100)}%` }}
               ></div>
             </div>
             <div className="flex justify-between items-center mt-2 text-[10px] text-[color:var(--claude-ink-sub)]">
-              <span>{((totalConstructionSpent / constructionBudget) * 100).toFixed(1)}% Capital Utilized</span>
-              <span>₹{(constructionBudget - totalConstructionSpent).toLocaleString('en-IN')} Remaining</span>
+              <span>{(((combinedSpent + combinedPending) / (combinedBudget || 1)) * 100).toFixed(1)}% Committed</span>
+              <span>₹{Math.max(combinedBudget - combinedSpent - combinedPending, 0).toLocaleString('en-IN')} Free</span>
             </div>
           </div>
         </div>
@@ -189,6 +207,93 @@ export default function OverviewTab({
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Dynamic Projects Breakdown Section */}
+      <div className="space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[color:var(--claude-ink)]">Active Building Projects</h3>
+        
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {constructionProjects.map(proj => {
+            const projExpenses = constructionExpenses.filter(e => e.source === proj.key && e.category !== 'system_project_metadata');
+            const spent = projExpenses.filter(e => e.status && e.status.toLowerCase() === 'paid').reduce((sum, e) => sum + e.amount, 0);
+            const pending = projExpenses.filter(e => e.status && e.status.toLowerCase() === 'pending').reduce((sum, e) => sum + e.amount, 0);
+            const isEditing = editingProjectKey === proj.key;
+
+            return (
+              <div key={proj.key} className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] p-5 rounded-2xl shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start gap-2 border-b border-[color:var(--claude-border)]/50 pb-2 mb-3">
+                    <h4 className="font-semibold text-xs text-[color:var(--claude-ink)]">{proj.name}</h4>
+                    <span className="text-[9px] uppercase tracking-wider text-[color:var(--claude-ink-sub)] font-medium">
+                      Key: {proj.key}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-[color:var(--claude-ink-sub)]">Paid Out:</span>
+                      <span className="font-semibold text-emerald-600">₹{spent.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[color:var(--claude-ink-sub)]">Pending Invoices:</span>
+                      <span className="font-semibold text-rose-600">₹{pending.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between font-medium border-t border-[color:var(--claude-border)]/30 pt-1.5 mt-1.5">
+                      <span className="text-[color:var(--claude-ink-sub)]">Total Cost Booked:</span>
+                      <span className="text-[color:var(--claude-ink)]">₹{(spent + pending).toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    {isEditing ? (
+                      <form onSubmit={(e) => handleSaveBudget(e, proj.key)} className="flex items-center gap-1.5 mt-1">
+                        <input
+                          type="number"
+                          value={tempProjBudget}
+                          onChange={e => setTempProjBudget(e.target.value)}
+                          className="bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded px-2 py-0.5 text-xs w-28 font-semibold focus:outline-none"
+                        />
+                        <button type="submit" className="text-[9px] bg-[color:var(--claude-accent)] text-white px-2 py-0.5 rounded font-semibold">Save</button>
+                        <button type="button" onClick={() => setEditingProjectKey(null)} className="text-[9px] text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)] font-semibold">Cancel</button>
+                      </form>
+                    ) : (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[color:var(--claude-ink-sub)]">Project Budget:</span>
+                        <div className="flex items-center gap-1">
+                          <span className="font-semibold text-[color:var(--claude-ink)]">₹{proj.budget.toLocaleString('en-IN')}</span>
+                          <button
+                            onClick={() => handleEditBudgetClick(proj.key, proj.budget)}
+                            className="text-[9px] text-[color:var(--claude-accent)] hover:underline"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-[color:var(--claude-border)]/40">
+                  <div className="w-full bg-[color:var(--claude-bg-strong)] h-1.5 rounded-full overflow-hidden flex">
+                    <div
+                      className="h-full bg-emerald-600"
+                      style={{ width: `${Math.min((spent / (proj.budget || 1)) * 100, 100)}%` }}
+                    ></div>
+                    <div
+                      className="h-full bg-amber-500"
+                      style={{ width: `${Math.min((pending / (proj.budget || 1)) * 100, 100 - (spent / (proj.budget || 1)) * 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between items-center mt-2 text-[9px] text-[color:var(--claude-ink-sub)]">
+                    <span>{(((spent + pending) / (proj.budget || 1)) * 100).toFixed(0)}% Committed</span>
+                    <span>₹{Math.max(proj.budget - spent - pending, 0).toLocaleString('en-IN')} Free</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

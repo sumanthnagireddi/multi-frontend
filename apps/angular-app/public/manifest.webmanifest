@@ -1,0 +1,43 @@
+{
+  "name": "Sumanth | Dev Portfolio",
+  "short_name": "SN Portfolio",
+  "description": "Sumanth's unified fullstack developer portfolio – Angular shell hosting React, Next.js finance, and more.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#1e293b",
+  "lang": "en",
+  "categories": ["productivity", "portfolio", "finance"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Finance Dashboard",
+      "short_name": "Finance",
+      "description": "Open private finance ledger",
+      "url": "/app/next/finance",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Resources",
+      "short_name": "Resources",
+      "description": "Open React resources app",
+      "url": "/app/react/resources",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
