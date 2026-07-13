@@ -2,6 +2,7 @@ import { Space_Grotesk } from 'next/font/google';
 import './global.css';
 import { ThemeSync } from './theme-sync';
 import { ToastProvider } from './components/ToastProvider';
+import { AuthProvider } from './components/AuthProvider';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -17,13 +18,15 @@ export const metadata = {
     statusBarStyle: 'default',
     title: 'Finance Ledger',
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
 };
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 
 export default function RootLayout({
   children,
@@ -56,9 +59,11 @@ export default function RootLayout({
         className={`${spaceGrotesk.variable} min-h-screen bg-[color:var(--canvas)] text-[color:var(--ink)] antialiased`}
       >
         <ThemeSync />
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );
