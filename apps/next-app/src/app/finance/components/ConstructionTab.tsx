@@ -213,7 +213,7 @@ export default function ConstructionTab({
                     onChange={(e) => setCeCategory(e.target.value)}
                     className="w-full bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--claude-accent)]"
                   >
-                    {['Cement', 'Steel', 'Labor', 'Plumbing', 'Electrical', 'Interior', 'Architect', 'Permits', 'Others'].map(cat => (
+                    {['Mesthri','Cement', 'Iron',  'Plumbing', 'Electrical', 'Interior','Doors','Bricks','stones', 'Permits', 'Others'].map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>

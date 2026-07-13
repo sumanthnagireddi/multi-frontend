@@ -216,7 +216,7 @@ export default function OverviewTab({
         
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {constructionProjects.map(proj => {
-            const projExpenses = constructionExpenses.filter(e => e.source === proj.key && e.category !== 'system_project_metadata');
+            const projExpenses = constructionExpenses.filter(e => (e.source || 'house') === proj.key && e.category !== 'system_project_metadata');
             const spent = projExpenses.filter(e => e.status && e.status.toLowerCase() === 'paid').reduce((sum, e) => sum + e.amount, 0);
             const pending = projExpenses.filter(e => e.status && e.status.toLowerCase() === 'pending').reduce((sum, e) => sum + e.amount, 0);
             const isEditing = editingProjectKey === proj.key;
@@ -308,7 +308,7 @@ export default function OverviewTab({
               <p className="text-xs text-[color:var(--claude-ink-sub)] py-8 text-center">No statements registered.</p>
             ) : (
               cardBills.map(bill => (
-                <div key={bill.cardId} className="py-4 flex justify-between items-center gap-4">
+                <div key={`${bill.cardId}-${bill.startDate}`} className="py-4 flex justify-between items-center gap-4">
                   <div>
                     <p className="text-sm font-semibold">{bill.cardName}</p>
                     <p className="text-xs text-[color:var(--claude-ink-sub)] mt-0.5">
@@ -325,7 +325,7 @@ export default function OverviewTab({
                     
                     {!bill.isPaid && bill.totalAmount > 0 && (
                       <button
-                        onClick={() => handlePayBill(bill.cardId, selectedMonth, true)}
+                        onClick={() => handlePayBill(bill.cardId, bill.statementMonth, true)}
                         className="px-3 py-1.5 text-[10px] font-semibold bg-[color:var(--claude-accent)] hover:bg-[color:var(--claude-accent)]/85 text-white rounded-lg transition"
                       >
                         Mark Paid

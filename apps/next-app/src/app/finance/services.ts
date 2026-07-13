@@ -113,6 +113,24 @@ export const financeService = {
     return response.json();
   },
 
+  async updateCard(id: string, card: Partial<Omit<CardInfo, 'id'>>): Promise<CardInfo> {
+    const response = await fetch(`${BASE_URL}/finance/cards/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(card),
+    });
+    if (!response.ok) throw new Error('Failed to update card');
+    const c = await response.json();
+    return {
+      id: c._id || c.id,
+      name: c.name,
+      lastFour: c.lastFour,
+      billingDay: c.billingDay,
+      dueDay: c.dueDay,
+      creditLimit: c.creditLimit,
+    };
+  },
+
   // Personal Expenses API
   async getPersonalExpenses(): Promise<PersonalExpense[]> {
     const response = await fetch(`${BASE_URL}/finance/personal-expenses`);

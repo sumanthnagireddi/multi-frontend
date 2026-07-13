@@ -108,12 +108,133 @@ export default function CardsTab({
   triggerToast
 }: CardsTabProps) {
 
+  // Local state to store statement data, selected period, and loading states for each card
+  const [localCardBills, setLocalCardBills] = useState<Record<string, CardBillStatement>>({});
+  const [cardMonths, setCardMonths] = useState<Record<string, string>>({});
+  const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
+
+  // Construct Month options for selection dropdown
+  const monthOptions = React.useMemo(() => {
+    const options = [];
+    const base = new Date();
+    base.setFullYear(2026, 6, 1); // July 2026
+    for (let i = -3; i <= 3; i++) {
+      const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      options.push({ val, label });
+    }
+    return options;
+  }, []);
+
+  // Sync initial card statements loaded by the dashboard (for the globally selected month)
+  React.useEffect(() => {
+    const initialBills: Record<string, CardBillStatement> = {};
+    const initialMonths: Record<string, string> = {};
+    cardBills.forEach(bill => {
+      initialBills[bill.cardId] = bill;
+      initialMonths[bill.cardId] = selectedMonth;
+    });
+    setLocalCardBills(initialBills);
+    setCardMonths(initialMonths);
+  }, [cardBills, selectedMonth]);
+
+  // Handle local statement month changes for a specific card
+  const handleCardMonthChange = async (cardId: string, newMonth: string) => {
+    setCardMonths(prev => ({ ...prev, [cardId]: newMonth }));
+    setLoadingMap(prev => ({ ...prev, [cardId]: true }));
+    try {
+      const bills = await financeService.getCardBillStatements(newMonth);
+      const myBill = bills.find(b => b.cardId === cardId);
+      if (myBill) {
+        setLocalCardBills(prev => ({ ...prev, [cardId]: myBill }));
+      }
+    } catch (err) {
+      console.error('Error fetching statement for card:', err);
+    } finally {
+      setLoadingMap(prev => ({ ...prev, [cardId]: false }));
+    }
+  };
+
+  // Fetch statements for cards that don't have them in local state (e.g. newly registered cards)
+  React.useEffect(() => {
+    cards.forEach(card => {
+      if (!localCardBills[card.id] && !loadingMap[card.id]) {
+        handleCardMonthChange(card.id, cardMonths[card.id] || selectedMonth);
+      }
+    });
+  }, [cards, localCardBills, loadingMap, selectedMonth]);
+
+  // Handle local card statement bill settlement
+  const handlePayBillLocal = async (cardId: string, statementMonth: string, currentPaidState: boolean) => {
+    try {
+      const nextPaidState = !currentPaidState;
+      await handlePayBill(cardId, statementMonth, nextPaidState);
+      
+      setLocalCardBills(prev => {
+        const bill = prev[cardId];
+        if (bill && bill.statementMonth === statementMonth) {
+          return {
+            ...prev,
+            [cardId]: { ...bill, isPaid: nextPaidState }
+          };
+        }
+        return prev;
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // Delete Card handler
   const handleDeleteCard = async (id: string) => {
     if (!confirm('Are you sure you want to deregister this card? This will hide statement calculations but keep existing logged transactions.')) return;
     try {
       await financeService.deleteCard(id);
       if (triggerToast) triggerToast('Credit card deregistered successfully.');
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Editing card state
+  const [editingCardId, setEditingCardId] = useState<string | null>(null);
+  const [showEditCardModal, setShowEditCardModal] = useState(false);
+  const [editCardName, setEditCardName] = useState('');
+  const [editCardLastFour, setEditCardLastFour] = useState('');
+  const [editCardBillingDay, setEditCardBillingDay] = useState('15');
+  const [editCardDueDay, setEditCardDueDay] = useState('5');
+  const [editCardLimit, setEditCardLimit] = useState('');
+
+  const handleOpenEditCard = (card: CardInfo) => {
+    setEditingCardId(card.id);
+    setEditCardName(card.name);
+    setEditCardLastFour(card.lastFour);
+    setEditCardBillingDay(card.billingDay.toString());
+    setEditCardDueDay(card.dueDay.toString());
+    setEditCardLimit(card.creditLimit.toString());
+    setShowEditCardModal(true);
+  };
+
+  const handleSaveEditCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editCardName || !editCardLastFour || !editCardLimit || !editingCardId) return;
+    try {
+      await financeService.updateCard(editingCardId, {
+        name: editCardName,
+        lastFour: editCardLastFour,
+        billingDay: parseInt(editCardBillingDay),
+        dueDay: parseInt(editCardDueDay),
+        creditLimit: parseFloat(editCardLimit)
+      });
+      setShowEditCardModal(false);
+      setEditingCardId(null);
+      if (triggerToast) triggerToast('Credit card details updated successfully.');
+      
+      // Update the local statement as well
+      handleCardMonthChange(editingCardId, cardMonths[editingCardId] || selectedMonth);
+      
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error(err);
@@ -239,6 +360,103 @@ export default function CardsTab({
         </div>
       )}
 
+      {/* Edit Card Modal Overlay */}
+      {showEditCardModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+            
+            <div className="px-6 py-4 border-b border-[color:var(--claude-border)] flex justify-between items-center bg-[color:var(--claude-bg-strong)]/40">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-[color:var(--claude-ink)]">Edit Credit Card Details</h3>
+              <button 
+                onClick={() => { setShowEditCardModal(false); setEditingCardId(null); }}
+                className="text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)] p-1 rounded-lg transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditCard} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-[color:var(--claude-ink-sub)] block mb-1">Card Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCardName}
+                    onChange={(e) => setEditCardName(e.target.value)}
+                    className="w-full bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--claude-accent)]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-[color:var(--claude-ink-sub)] block mb-1">Last 4 Digits *</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={4}
+                    value={editCardLastFour}
+                    onChange={(e) => setEditCardLastFour(e.target.value)}
+                    className="w-full bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--claude-accent)]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-[color:var(--claude-ink-sub)] block mb-1">Billing Day *</label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    max={31}
+                    value={editCardBillingDay}
+                    onChange={(e) => setEditCardBillingDay(e.target.value)}
+                    className="w-full bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--claude-accent)]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-[color:var(--claude-ink-sub)] block mb-1">Due Day *</label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    max={31}
+                    value={editCardDueDay}
+                    onChange={(e) => setEditCardDueDay(e.target.value)}
+                    className="w-full bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--claude-accent)]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-[color:var(--claude-ink-sub)] block mb-1">Credit Limit *</label>
+                  <input
+                    type="number"
+                    required
+                    value={editCardLimit}
+                    onChange={(e) => setEditCardLimit(e.target.value)}
+                    className="w-full bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--claude-accent)]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-[color:var(--claude-accent)] text-white text-xs font-semibold rounded-xl hover:bg-[color:var(--claude-accent)]/90 transition"
+                >
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowEditCardModal(false); setEditingCardId(null); }}
+                  className="flex-1 py-2.5 bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink-sub)] text-xs font-semibold rounded-xl border border-[color:var(--claude-border)] hover:bg-[color:var(--claude-bg-strong)]/80 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Credit Cards Horizontal Slides Deck */}
       <div className="space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-[color:var(--claude-ink)]">Registered Cards Wallet</h3>
@@ -290,13 +508,22 @@ export default function CardsTab({
                     <div className="flex flex-col items-end gap-1">
                       {/* Brand card network renderer */}
                       {renderNetworkLogo(design.network, design.isPlatinum)}
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteCard(card.id); }}
-                        className="text-[9px] px-1 py-0.5 rounded bg-black/35 hover:bg-red-700/80 text-white transition mt-1"
-                        title="Delete Card"
-                      >
-                        Remove
-                      </button>
+                      <div className="flex gap-1.5 mt-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleOpenEditCard(card); }}
+                          className="text-[9px] px-1.5 py-0.5 rounded bg-black/35 hover:bg-[color:var(--claude-accent)] text-white transition font-medium"
+                          title="Edit Card"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteCard(card.id); }}
+                          className="text-[9px] px-1.5 py-0.5 rounded bg-black/35 hover:bg-red-700/80 text-white transition font-medium"
+                          title="Delete Card"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -310,30 +537,46 @@ export default function CardsTab({
       <div className="space-y-6 pt-2">
         <h3 className="text-xs font-bold uppercase tracking-wider text-[color:var(--claude-ink)] border-b border-[color:var(--claude-border)]/50 pb-2">Active Cycle Billing Statements</h3>
         
-        {cardBills.length === 0 ? (
-          <p className="text-xs text-[color:var(--claude-ink-sub)] text-center py-8">No card statements computed for this month.</p>
+        {cards.length === 0 ? (
+          <p className="text-xs text-[color:var(--claude-ink-sub)] text-center py-8">No registered cards in your wallet yet.</p>
         ) : (
           <div className="space-y-8">
-            {cardBills.map(bill => {
-              const cardData = cardMap.get(bill.cardId);
-              const design = getCardDesign(bill.cardName);
+            {cards.map(card => {
+              const bill = localCardBills[card.id];
+              const design = getCardDesign(card.name);
+              const currentMonth = cardMonths[card.id] || selectedMonth;
+              const loading = loadingMap[card.id];
               
+              if (!bill) {
+                return (
+                  <div key={card.id} className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] rounded-2xl shadow-sm p-6 flex justify-between items-center animate-pulse">
+                    <span className="text-xs text-[color:var(--claude-ink-sub)]">Loading {card.name} statement...</span>
+                  </div>
+                );
+              }
+
               const usersDist: Record<string, number> = {};
               bill.transactions.forEach(tx => {
                 usersDist[tx.usedBy] = (usersDist[tx.usedBy] || 0) + tx.amount;
               });
 
               // Cycle status details
-              const billingDay = cardData?.billingDay || 15;
-              const dueDay = cardData?.dueDay || 5;
+              const billingDay = card.billingDay;
+              const dueDay = card.dueDay;
               const isPaid = bill.isPaid;
               
               // Calculate limit usage percentage
-              const limitUsedPct = cardData ? Math.min(Math.round((bill.totalAmount / cardData.creditLimit) * 100), 100) : 0;
+              const limitUsedPct = Math.min(Math.round((bill.totalAmount / card.creditLimit) * 100), 100);
 
               return (
-                <div key={bill.cardId} className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] rounded-2xl shadow-sm overflow-hidden">
+                <div key={card.id} className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] rounded-2xl shadow-sm overflow-hidden relative">
                   
+                  {loading && (
+                    <div className="absolute inset-0 bg-slate-900/10 backdrop-blur-xs flex items-center justify-center z-10">
+                      <div className="w-6 h-6 rounded-full border-2 border-[color:var(--claude-border)] border-t-[color:var(--claude-accent)] animate-spin"></div>
+                    </div>
+                  )}
+
                   {/* Statement Top Info Bar */}
                   <div className="p-6 bg-[color:var(--claude-bg-strong)]/40 border-b border-[color:var(--claude-border)] flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                     <div className="flex items-center gap-4">
@@ -342,14 +585,28 @@ export default function CardsTab({
                         style={{ background: design.bg }} 
                         className={`w-12 h-8 rounded-lg border border-white/10 shrink-0 flex items-center justify-center text-[8px] font-bold ${design.textColor}`}
                       >
-                        {cardData?.lastFour || 'CARD'}
+                        {card.lastFour || 'CARD'}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-semibold text-[color:var(--claude-ink)]">{bill.cardName}</h4>
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <h4 className="text-sm font-semibold text-[color:var(--claude-ink)]">{card.name}</h4>
                           <span className="text-[9px] bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] px-2 py-0.5 rounded font-medium text-[color:var(--claude-ink-sub)]">
                             Bill Cycle Day: {billingDay}th
                           </span>
+                          
+                          {/* Local Month Selector Dropdown */}
+                          <div className="flex items-center gap-1.5 bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] px-2 py-0.5 rounded-lg">
+                            <label className="text-[8px] font-medium text-[color:var(--claude-ink-sub)] uppercase">Period:</label>
+                            <select
+                              value={currentMonth}
+                              onChange={(e) => handleCardMonthChange(card.id, e.target.value)}
+                              className="bg-transparent text-[10px] font-semibold focus:outline-none border-none cursor-pointer text-[color:var(--claude-ink)]"
+                            >
+                              {monthOptions.map(opt => (
+                                <option key={opt.val} value={opt.val}>{opt.label}</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                         <p className="text-[10px] text-[color:var(--claude-ink-sub)] mt-0.5">
                           Statement: <span className="font-medium">{bill.startDate}</span> to <span className="font-medium">{bill.endDate}</span>
@@ -383,7 +640,7 @@ export default function CardsTab({
                       <div>
                         {bill.totalAmount > 0 ? (
                           <button
-                            onClick={() => handlePayBill(bill.cardId, selectedMonth, !isPaid)}
+                            onClick={() => handlePayBillLocal(card.id, bill.statementMonth, isPaid)}
                             className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition ${
                               isPaid
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900'
