@@ -82,7 +82,7 @@ type GoldForecastRun = {
   updatedAt?: string;
 };
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = 'https://ai-webservices.onrender.com';
 
 function formatNumber(value: number, digits = 0) {
   return new Intl.NumberFormat('en-IN', {
