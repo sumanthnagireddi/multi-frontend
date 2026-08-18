@@ -2,10 +2,12 @@
     class="sticky top-0 z-30 w-full border-b border-transparent max-md:border-gray-100 md:border-gray-100 bg-white dark:bg-slate-900 dark:border-slate-700 backdrop-blur-xl transition-colors duration-300">
     <nav class="mx-auto flex items-center justify-between px-6 py-3 lg:px-8" aria-label="Global">
         <div class="flex sm:flex-1">
-            <a class="-m-1.5 p-1.5">
-                <p routerLink="/" class="font-bold text-xl text-gray-800 dark:text-gray-100 cursor-pointer">{{'
-                    < SN />'}}
-                </p>
+            <a routerLink="/" class="-m-1.5 p-1.5 flex items-center cursor-pointer group outline-none">
+                <div class="flex items-center text-2xl font-black tracking-tighter" style="font-family: 'Inter', sans-serif;">
+                    <span class="text-gray-400 dark:text-gray-500 transition-colors group-hover:text-gray-500 dark:group-hover:text-gray-400">&lt;&nbsp;</span>
+                    <span class="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent group-hover:from-purple-500 group-hover:to-pink-600 transition-all duration-500">SN</span>
+                    <span class="text-gray-400 dark:text-gray-500 transition-colors group-hover:text-gray-500 dark:group-hover:text-gray-400">&nbsp;/&gt;</span>
+                </div>
             </a>
         </div>
         <div class="flex sm:hidden">
@@ -27,8 +29,8 @@
             </button>
         </div>
         <div class="hidden sm:flex sm:gap-x-12">
-            <a href="#" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">AI</a>
-            <a routerLink="blog" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">Blog</a>
+            <a [routerLink]="['/app','next','ai']" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">AI</a>
+            <a [routerLink]="['/app','react','gold-prediction']" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">Gold</a>
             <a
               [routerLink]="['/app','react','resources']"
               class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
@@ -59,7 +61,7 @@
             *ngIf="openMenu">
             <div (click)="openMenu = false" class="-my-6 divide-y divide-gray-500/10 dark:divide-slate-700">
                 <div class="py-4 flex flex-col gap-3">
-                    <a href="#" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">Work</a>
+                    <a [routerLink]="['/app','next','ai']" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">AI</a>
                     <a routerLink="blog" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">Blog</a>
                     <a
                       [routerLink]="['/app','react','resources']"

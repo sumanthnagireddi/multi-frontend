@@ -38,6 +38,7 @@ export function useTheme() { return useContext(ThemeContext); }
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: appStylesHref },
+  { rel: 'stylesheet', href: 'https://rsms.me/inter/inter.css' },
   {
     rel: 'stylesheet',
     href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0',
@@ -63,7 +64,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <html lang="en">
+    <html lang="en" className="bg-white dark:bg-gray-950 scheme-light dark:scheme-dark">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

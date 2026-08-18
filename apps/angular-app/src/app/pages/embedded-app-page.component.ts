@@ -58,9 +58,10 @@ export class EmbeddedAppPageComponent implements OnInit, OnDestroy {
         this.routeSub = combineLatest([
             this.route.paramMap,
             this.route.queryParamMap,
-        ]).subscribe(([params, queryParams]) => {
-            const slug = params.get('slug');
-            const page = params.get('page') ?? '';
+            this.route.data,
+        ]).subscribe(([params, queryParams, data]) => {
+            const slug = params.get('slug') || data['slug'];
+            const page = (params.get('page') ?? data['page']) ?? '';
             const subpage = params.get('subpage') ? `/${params.get('subpage')}` : '';
             const routePath = `${page}${subpage}` || queryParams.get('path') || '';
 

@@ -9,6 +9,14 @@ export const appRoutes: Route[] = [
     component: HomePageComponent,
   },
   {
+    path: 'ai',
+    component: EmbeddedAppPageComponent,
+    data: {
+      slug: 'next',
+      page: 'ai'
+    }
+  },
+  {
     path: 'app/:slug/:page',
     component: EmbeddedAppPageComponent,
   },
