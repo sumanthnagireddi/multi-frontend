@@ -12,6 +12,7 @@ const TOKEN      = 'fl_authenticated_v1';
 interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
+  username: string;
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
@@ -22,12 +23,14 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading]             = useState(true);
+  const [username, setUsername] = useState('');
 
   // Rehydrate session from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(AUTH_KEY);
       setIsAuthenticated(stored === TOKEN);
+      if (stored === TOKEN) setUsername(DUMMY_USER);
     } catch {
       setIsAuthenticated(false);
     } finally {
@@ -42,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (username.trim() === DUMMY_USER && password === DUMMY_PASS) {
       localStorage.setItem(AUTH_KEY, TOKEN);
       setIsAuthenticated(true);
+      setUsername(DUMMY_USER);
       return { success: true };
     }
     return { success: false, error: 'Invalid username or password.' };
@@ -50,10 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     localStorage.removeItem(AUTH_KEY);
     setIsAuthenticated(false);
+    setUsername('');
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, username, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

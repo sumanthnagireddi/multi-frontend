@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import {
   financeService,
   CardInfo,
@@ -19,6 +20,7 @@ import CardsTab from './components/CardsTab';
 import ConstructionTab from './components/ConstructionTab';
 import DebtsTab from './components/DebtsTab';
 import ChitTab from './components/ChitTab';
+import { getApiUrl } from '@unified-frontend-monorepo/workspace-data';
 
 export default function FinanceDashboard() {
   const [loading, setLoading] = useState(true);
@@ -125,7 +127,20 @@ export default function FinanceDashboard() {
   }, [selectedMonth]);
 
   const { showToast: _globalShowToast } = useToast();
-  const { logout } = useAuth();
+  const { logout, username } = useAuth();
+  useEffect(() => {
+    const visitorId = localStorage.getItem('fl_visitor_id') || 'unknown';
+    void fetch(`${getApiUrl()}/analytics/visits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        route: `/finance#${activeTab}`,
+        visitorId,
+        username: username || 'anonymous',
+        referrer: document.referrer || '',
+      }),
+    }).catch(() => undefined);
+  }, [activeTab, username]);
   const triggerToast = (msg: string) => {
     _globalShowToast(msg, 'success');
   };
@@ -537,6 +552,14 @@ export default function FinanceDashboard() {
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
 
+            <Link
+              href="/analytics"
+              className="p-2.5 bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)] transition flex items-center shadow-xs"
+              title="Visitor analytics"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 3v18h18"/><path d="M7 16l4-5 4 3 5-7"/></svg>
+            </Link>
+
             {/* Logout */}
             <button
               onClick={() => { logout(); }}
@@ -706,6 +729,7 @@ export default function FinanceDashboard() {
             {activeTab === 'chits' && (
               <ChitTab triggerToast={triggerToast} />
             )}
+
 
             {/* Dynamic Construction Tabs */}
             {constructionProjects.map(proj => {

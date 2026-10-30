@@ -3,6 +3,7 @@ import './global.css';
 import { ThemeSync } from './theme-sync';
 import { ToastProvider } from './components/ToastProvider';
 import { AuthProvider } from './components/AuthProvider';
+import { VisitTracker } from './components/VisitTracker';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -62,6 +63,7 @@ export default function RootLayout({
         <ThemeSync />
         <AuthProvider>
           <ToastProvider>
+            <VisitTracker />
             {children}
           </ToastProvider>
         </AuthProvider>

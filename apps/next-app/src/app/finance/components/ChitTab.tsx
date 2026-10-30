@@ -170,29 +170,53 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
         payout,
         Number(targetReturn),
       );
-      setAnalysis(result);
-      const lifeInstallments = result.monthlySchedule.reduce(
+      const commission = chit.commissionType === 'PERCENT'
+        ? (chit.chitValue * chit.commissionValue) / 100
+        : chit.commissionValue;
+      const fallbackResult = buildFallbackMonthScenarios(chit)[0];
+      const fallbackByMonth = new Map(
+        fallbackResult.monthlySchedule.map((row) => [row.month, row]),
+      );
+      const normalizedSchedule = Array.from({ length: chit.duration }, (_, index) => {
+        const scheduleMonth = index + 1;
+        const apiRow = result.monthlySchedule.find((row) => row.month === scheduleMonth);
+        const fallbackRow = fallbackByMonth.get(scheduleMonth);
+        if (!apiRow) return fallbackRow;
+        return {
+          ...fallbackRow,
+          ...apiRow,
+          winningBid: scheduleMonth === chit.duration
+            ? Math.max(1, chit.chitValue - commission)
+            : apiRow.winningBid || fallbackRow?.winningBid || 0,
+        };
+      }).filter((row): row is NonNullable<typeof row> => Boolean(row));
+      const normalizedResult = {
+        ...result,
+        monthlySchedule: normalizedSchedule,
+      };
+      setAnalysis(normalizedResult);
+      const lifeInstallments = normalizedSchedule.reduce(
         (sum, row) => sum + row.installmentPaid,
         0,
       );
-      const terminalDividends = result.monthlySchedule.reduce(
+      const terminalDividends = normalizedSchedule.reduce(
         (sum, row) => sum + row.terminalDividend,
         0,
       );
       const lifeCost = lifeInstallments - terminalDividends;
-      const fallbackScenarios = result.monthlySchedule.map((row) => ({
-        ...result,
+      const fallbackScenarios = normalizedSchedule.map((row) => ({
+        ...normalizedResult,
         withdrawalMonth: row.month,
         winningBid: row.winningBid,
         nominalNetGain: row.winningBid - lifeCost,
         nominalReturnPercent: lifeCost > 0
           ? ((row.winningBid - lifeCost) / lifeCost) * 100
           : 0,
-        monthlySchedule: result.monthlySchedule,
+        monthlySchedule: normalizedSchedule,
       }));
       setMonthScenarios(fallbackScenarios);
       const projectedBids = new Map(
-        result.monthlySchedule.map((row) => [row.month, row.winningBid]),
+        normalizedSchedule.map((row) => [row.month, row.winningBid]),
       );
       const scenarios = await Promise.all(
         Array.from({ length: chit.duration }, (_, index) => index + 1).map(
@@ -485,127 +509,28 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
                   Max discount = chit value − minimum winning payout needed to meet the target return.
                 </p>
               </div>
-              <div className="space-y-3 p-3 md:hidden">
-                {monthScenarios.map((scenario) => {
-                  const monthlyInstallment =
-                    scenario.monthlySchedule.find((row) => row.month === scenario.withdrawalMonth)
-                      ?.installmentPaid ?? selected.monthlyInstallment;
-                  const amountPaid = scenario.monthlySchedule
-                    .filter((row) => row.month <= scenario.withdrawalMonth)
-                    .reduce((sum, row) => sum + row.installmentPaid, 0);
-                  const auction = selected.auctions.find(
-                    (item) => item.month === scenario.withdrawalMonth,
-                  );
-                  const isFinalMonth = scenario.withdrawalMonth === selected.duration;
-
-                  return (
-                    <article
-                      key={scenario.withdrawalMonth}
-                      className="rounded-xl border border-[color:var(--claude-border)] bg-[color:var(--claude-bg-strong)] p-3"
-                    >
-                      <div className="flex items-start justify-between gap-3 border-b border-[color:var(--claude-border)] pb-3">
-                        <div>
-                          <p className="text-sm font-semibold">
-                            {calendarMonth(selected.startMonth, scenario.withdrawalMonth)}
-                          </p>
-                          <p className="mt-1 text-[10px] text-[color:var(--claude-ink-sub)]">
-                            Month {scenario.withdrawalMonth}/{selected.duration}
-                          </p>
-                        </div>
-                        {auction?.verified ? (
-                          <span title="Verified" aria-label="Verified" style={{ color: '#16a34a' }}>
-                            <svg viewBox="0 0 20 20" className="h-5 w-5" role="img">
-                              <circle cx="10" cy="10" r="8" fill="currentColor" />
-                              <path d="M6.2 10.1l2.35 2.35 5.25-5.25" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </span>
-                        ) : auction ? (
-                          <button
-                            type="button"
-                            onClick={() => void verifyTableAuction(scenario.withdrawalMonth)}
-                            className="text-slate-400 transition-colors hover:text-emerald-600"
-                            title="Mark completed and verified"
-                            aria-label="Mark completed and verified"
-                          >
-                            <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 fill-current">
-                              <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                              <path d="M6.2 10.1l2.35 2.35 5.25-5.25" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </button>
-                        ) : (
-                          <span className="text-[10px] text-[color:var(--claude-ink-sub)]">Forecast</span>
-                        )}
-                      </div>
-
-                      <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3 text-xs">
-                        <label className="col-span-2">
-                          <span className="mb-1 block text-[10px] text-[color:var(--claude-ink-sub)]">Winning payout</span>
-                          <input
-                            key={`${scenario.withdrawalMonth}:${scenario.winningBid}`}
-                            type="number"
-                            defaultValue={scenario.winningBid}
-                            readOnly={isFinalMonth}
-                            onBlur={(event) => {
-                              if (Number(event.target.value) !== scenario.winningBid) {
-                                void saveTablePayout(scenario.withdrawalMonth, event.target.value);
-                              }
-                            }}
-                            aria-label={`Edit payout for ${calendarMonth(selected.startMonth, scenario.withdrawalMonth)}`}
-                            className={`w-full rounded-lg border border-[color:var(--claude-border)] bg-transparent px-3 py-2 font-semibold ${
-                              isFinalMonth ? 'cursor-not-allowed opacity-80' : ''
-                            }`}
-                          />
-                        </label>
-                        <div><span className="block text-[10px] text-[color:var(--claude-ink-sub)]">Monthly installment</span><b>{inr(monthlyInstallment)}</b></div>
-                        <div><span className="block text-[10px] text-[color:var(--claude-ink-sub)]">Amount paid</span><b>{inr(amountPaid)}</b></div>
-                        <div>
-                          <span className="block text-[10px] text-[color:var(--claude-ink-sub)]">Profit / loss</span>
-                          <b className={scenario.nominalNetGain >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
-                            {scenario.nominalNetGain >= 0 ? '+' : ''}{inr(scenario.nominalNetGain)}
-                          </b>
-                        </div>
-                        <div><span className="block text-[10px] text-[color:var(--claude-ink-sub)]">Return</span><b>{scenario.nominalReturnPercent.toFixed(2)}%</b></div>
-                        <div className="col-span-2"><span className="block text-[10px] text-[color:var(--claude-ink-sub)]">Max discount for target</span><b>{inr(scenario.maximumDiscountBidForTargetReturn)}</b></div>
-                        <div className="col-span-2">
-                          <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${
-                            scenario.nominalNetGain >= 0
-                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'
-                              : 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400'
-                          }`}>
-                            {scenario.nominalNetGain >= 0 ? 'PROFIT ZONE' : 'LOSS ZONE'}
-                          </span>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-                {!monthScenarios.length && (
-                  <div className="p-8 text-center text-xs text-[color:var(--claude-ink-sub)]">Calculating all month scenarios…</div>
-                )}
-              </div>
-
-              <div className="hidden overflow-x-auto md:block">
-                <table className="w-full min-w-[720px] text-left text-xs">
+              <div className="block overflow-x-auto">
+                <table className="w-full min-w-[980px] table-fixed text-left text-xs">
                   <thead className="bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink-sub)]">
                     <tr>
-                      <th className="p-3">Month</th>
-                      <th className="p-3">Winning payout</th>
-                      <th className="p-3">Monthly installment</th>
-                      <th className="p-3">Amount Paid</th>
-                      <th className="p-3">Profit / loss</th>
-                      <th className="p-3">Return</th>
-                      <th className="p-3" title="Chit value minus the minimum winning payout needed for the target return">Max discount for target</th>
-                      <th className="p-3">Profit zone</th>
-                      <th className="p-3">status</th>
+                      <th className="w-[12%] px-3 py-3">Month</th>
+                      <th className="w-[13%] px-3 py-3">Winning payout</th>
+                      <th className="w-[12%] px-3 py-3">Monthly installment</th>
+                      <th className="w-[11%] px-3 py-3">Amount paid</th>
+                      <th className="w-[12%] px-3 py-3">Profit / loss</th>
+                      <th className="w-[8%] px-3 py-3">Return</th>
+                      <th className="w-[14%] px-3 py-3" title="Chit value minus the minimum winning payout needed for the target return">Max discount</th>
+                      <th className="w-[10%] px-3 py-3">Zone</th>
+                      <th className="w-[8%] px-3 py-3 text-center">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {monthScenarios.map((scenario) => (
-                      <tr key={scenario.withdrawalMonth} className="border-t border-[color:var(--claude-border)]">
-                        <td className="p-3 font-semibold">
+                      <tr key={scenario.withdrawalMonth} className="border-t border-[color:var(--claude-border)] transition-colors hover:bg-[color:var(--claude-bg-strong)]/40">
+                        <td className="px-3 py-3 font-semibold whitespace-nowrap">
                           <div>{calendarMonth(selected.startMonth, scenario.withdrawalMonth)}</div>
                         </td>
-                        <td className="p-3">
+                        <td className="px-3 py-3">
                           <input
                             key={`${scenario.withdrawalMonth}:${scenario.winningBid}`}
                             type="number"
@@ -625,26 +550,26 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
                             }`}
                           />
                         </td>
-                        <td className="p-3">
+                        <td className="px-3 py-3 whitespace-nowrap">
                           {inr(
                             scenario.monthlySchedule.find(
                               (row) => row.month === scenario.withdrawalMonth,
                             )?.installmentPaid ?? selected.monthlyInstallment,
                           )}
                         </td>
-                        <td className="p-3 font-semibold">
+                        <td className="px-3 py-3 font-semibold whitespace-nowrap">
                           {inr(
                             scenario.monthlySchedule
                               .filter((row) => row.month <= scenario.withdrawalMonth)
                               .reduce((sum, row) => sum + row.installmentPaid, 0),
                           )}
                         </td>
-                        <td className={`p-3 font-semibold ${scenario.nominalNetGain >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        <td className={`px-3 py-3 font-semibold whitespace-nowrap ${scenario.nominalNetGain >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {scenario.nominalNetGain >= 0 ? '+' : ''}{inr(scenario.nominalNetGain)}
                         </td>
-                        <td className="p-3">{scenario.nominalReturnPercent.toFixed(2)}%</td>
-                        <td className="p-3 font-semibold">{inr(scenario.maximumDiscountBidForTargetReturn)}</td>
-                        <td className="p-3">
+                        <td className="px-3 py-3 whitespace-nowrap">{scenario.nominalReturnPercent.toFixed(2)}%</td>
+                        <td className="px-3 py-3 font-semibold whitespace-nowrap">{inr(scenario.maximumDiscountBidForTargetReturn)}</td>
+                        <td className="px-3 py-3">
                           <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${
                             scenario.nominalNetGain >= 0
                               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'
@@ -653,7 +578,7 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
                             {scenario.nominalNetGain >= 0 ? 'PROFIT ZONE' : 'LOSS ZONE'}
                           </span>
                         </td>
-                        <td className="p-3">
+                        <td className="px-3 py-3 text-center">
                           {selected.auctions.find((auction) => auction.month === scenario.withdrawalMonth)?.verified ? (
                             <span className="inline-flex text-emerald-600" title="Verified" aria-label="Verified">
                               <svg viewBox="0 0 20 20" className="h-5 w-5" role="img" style={{ color: '#16a34a' }}>

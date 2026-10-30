@@ -29,6 +29,12 @@ export default function Index() {
             >
               Playbook
             </Link>
+            <Link
+              href="/analytics"
+              className="rounded-full border border-slate-200 px-4 py-2 text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+            >
+              Analytics
+            </Link>
             <a
               href="http://localhost:4200"
               target="_blank"
