@@ -62,6 +62,63 @@ export interface CardBillStatement {
   isPaid: boolean;
 }
 
+export interface ChitAuction {
+  month: number;
+  winningBid: number;
+  isActual?: boolean;
+  verified?: boolean;
+}
+
+export interface Chit {
+  id: string;
+  name: string;
+  chitValue: number;
+  duration: number;
+  members: number;
+  monthlyInstallment: number;
+  commissionType: 'PERCENT' | 'FIXED';
+  commissionValue: number;
+  currentMonth: number;
+  startMonth: string;
+  firstAndLastFixed: boolean;
+  terminalDividendMonths: number[];
+  auctions: ChitAuction[];
+}
+
+export interface ChitDashboard {
+  chitCount: number;
+  totalChitValue: number;
+  totalPaidToDate: number;
+  totalDividendsEarnedToDate: number;
+  chits: Chit[];
+}
+
+export interface ChitAnalysis {
+  withdrawalMonth: number;
+  winningBid: number;
+  totalInstallments: number;
+  terminalDividends: number;
+  netCashCost: number;
+  payout: number;
+  nominalNetGain: number;
+  nominalReturnPercent: number;
+  npvAtTargetReturn: number;
+  targetAnnualReturn: number;
+  maximumDiscountBidForTargetReturn: number;
+  minimumWinningPayoutForTargetReturn: number;
+  monthlySchedule: Array<{
+    month: number;
+    winningBid: number;
+    discount: number;
+    dividendPerMember: number;
+    installmentPaid: number;
+    terminalDividend: number;
+    isActual: boolean;
+    source?: 'ACTUAL' | 'PROJECTED';
+  }>;
+  assumptions: string[];
+}
+
 // ---------------------------------------------------------
 // API Services Layer targeting the NestJS webservices backend
 // ---------------------------------------------------------
@@ -392,5 +449,111 @@ export const financeService = {
     });
     if (!response.ok) throw new Error('Failed to update card bill status');
     return response.json();
+  },
+
+  // Chit funds API
+  async getChitDashboard(): Promise<ChitDashboard> {
+    const response = await fetch(`${BASE_URL}/finance/chits/dashboard`);
+    if (!response.ok) throw new Error('Failed to fetch chit dashboard');
+    return response.json();
+  },
+
+  async createChit(body: {
+    name: string;
+    chitValue: number;
+    duration: number;
+    members: number;
+    monthlyInstallment: number;
+    commissionType: 'PERCENT' | 'FIXED';
+    commissionValue: number;
+    currentMonth: number;
+    startMonth: string;
+  }): Promise<Chit> {
+    const response = await fetch(`${BASE_URL}/finance/chits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...body,
+        firstAndLastFixed: true,
+        terminalDividendMonths: [body.duration - 1, body.duration],
+      }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to create chit');
+    }
+    return response.json();
+  },
+
+  async addChitAuction(id: string, month: number, winningBid: number): Promise<Chit> {
+    const response = await fetch(`${BASE_URL}/finance/chits/${id}/auctions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ month, winningBid }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to record auction');
+    }
+    return response.json();
+  },
+
+  async verifyChitAuction(id: string, month: number): Promise<Chit> {
+    const response = await fetch(`${BASE_URL}/finance/chits/${id}/auctions/${month}/verify`, {
+      method: 'PATCH',
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to verify auction');
+    }
+    return response.json();
+  },
+
+  async updateChit(id: string, body: Partial<{
+    name: string;
+    chitValue: number;
+    duration: number;
+    members: number;
+    monthlyInstallment: number;
+    commissionType: 'PERCENT' | 'FIXED';
+    commissionValue: number;
+    currentMonth: number;
+    startMonth: string;
+  }>): Promise<Chit> {
+    const response = await fetch(`${BASE_URL}/finance/chits/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to update chit');
+    }
+    return response.json();
+  },
+
+  async simulateChit(
+    id: string,
+    withdrawalMonth: number,
+    winningBid: number,
+    targetAnnualReturn: number,
+  ): Promise<ChitAnalysis> {
+    const response = await fetch(`${BASE_URL}/finance/chits/${id}/simulate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ withdrawalMonth, winningBid, targetAnnualReturn }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to calculate scenario');
+    }
+    return response.json();
+  },
+
+  async deleteChit(id: string): Promise<boolean> {
+    const response = await fetch(`${BASE_URL}/finance/chits/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Failed to delete chit');
+    await response.json();
+    return true;
   }
 };

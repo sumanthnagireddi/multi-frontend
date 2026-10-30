@@ -18,6 +18,7 @@ import PersonalTab from './components/PersonalTab';
 import CardsTab from './components/CardsTab';
 import ConstructionTab from './components/ConstructionTab';
 import DebtsTab from './components/DebtsTab';
+import ChitTab from './components/ChitTab';
 
 export default function FinanceDashboard() {
   const [loading, setLoading] = useState(true);
@@ -31,7 +32,10 @@ export default function FinanceDashboard() {
   
   // Navigation & Filter states
   const [activeTab, setActiveTab] = useState<string>('overview');
-  const [selectedMonth, setSelectedMonth] = useState<string>('2026-07'); // YYYY-MM
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [personalCategoryFilter, setPersonalCategoryFilter] = useState<string>('All');
   const [personalCardFilter, setPersonalCardFilter] = useState<string>('All');
 
@@ -475,7 +479,7 @@ export default function FinanceDashboard() {
   const monthOptions = useMemo(() => {
     const options = [];
     const base = new Date();
-    base.setFullYear(2026, 6, 1); // July 2026
+    base.setDate(1);
     for (let i = -3; i <= 3; i++) {
       const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
       const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -549,7 +553,8 @@ export default function FinanceDashboard() {
           {[
             { id: 'overview', label: 'Overview', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg> },
             { id: 'personal', label: 'Personal Expenses', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> },
-            { id: 'cards', label: 'Card Statements', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> }
+            { id: 'cards', label: 'Card Statements', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> },
+            { id: 'chits', label: 'Chit Funds', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.9-.7-2-1.1-3.3-1.1-1.8 0-3.2.9-3.2 2.2 0 3.5 7 1.5 7 5.1 0 1.4-1.4 2.4-3.5 2.4-1.5 0-3-.5-4-1.3M12 5v14"/></svg> }
           ].map(tab => (
             <button
               key={tab.id}
@@ -695,6 +700,11 @@ export default function FinanceDashboard() {
                 onRefresh={loadDashboardData}
                 triggerToast={triggerToast}
               />
+            )}
+
+            {/* Chit Funds Tab */}
+            {activeTab === 'chits' && (
+              <ChitTab triggerToast={triggerToast} />
             )}
 
             {/* Dynamic Construction Tabs */}

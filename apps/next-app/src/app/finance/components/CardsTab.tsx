@@ -117,7 +117,7 @@ export default function CardsTab({
   const monthOptions = React.useMemo(() => {
     const options = [];
     const base = new Date();
-    base.setFullYear(2026, 6, 1); // July 2026
+    base.setDate(1); // July 2026
     for (let i = -3; i <= 3; i++) {
       const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
       const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
