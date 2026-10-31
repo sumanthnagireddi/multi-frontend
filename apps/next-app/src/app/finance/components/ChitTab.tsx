@@ -105,7 +105,17 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
           ? dividendPerMember
           : 0,
         isActual: auctionMap.has(month),
+        amountPaid: 0,
+        totalAmountPaid: 0,
       };
+    });
+
+    let cumulativeAmountPaid = 0;
+    monthlySchedule.forEach((row) => {
+      const savedPayment = chit.payments?.find((payment) => payment.month === row.month);
+      row.amountPaid = savedPayment?.amountPaid ?? row.installmentPaid;
+      cumulativeAmountPaid += row.amountPaid;
+      row.totalAmountPaid = cumulativeAmountPaid;
     });
 
     const totalInstallments = monthlySchedule.reduce((sum, row) => sum + row.installmentPaid, 0);
@@ -286,6 +296,8 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
               ? dividendPerMember
               : 0,
             isActual: auctionMap.has(month),
+            amountPaid: 0,
+            totalAmountPaid: 0,
           };
 
           function monthlyScheduleDividend(scheduleIndex: number) {
@@ -293,6 +305,13 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
             const priorDiscount = Math.max(0, fallbackChit.chitValue - priorRow);
             return Math.max(0, priorDiscount - commission) / fallbackChit.members;
           }
+        });
+        let fallbackCumulativePaid = 0;
+        monthlySchedule.forEach((row) => {
+          const savedPayment = fallbackChit.payments?.find((payment) => payment.month === row.month);
+          row.amountPaid = savedPayment?.amountPaid ?? row.installmentPaid;
+          fallbackCumulativePaid += row.amountPaid;
+          row.totalAmountPaid = fallbackCumulativePaid;
         });
         const totalInstallments = monthlySchedule.reduce(
           (sum, row) => sum + row.installmentPaid,
@@ -423,6 +442,23 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
     }
   };
 
+  const saveTablePayment = async (month: number, value: string) => {
+    if (!selected) return;
+    const amountPaid = Number(value);
+    if (!Number.isFinite(amountPaid) || amountPaid < 0) {
+      triggerToast('Amount paid must be zero or greater.', 'error');
+      return;
+    }
+    try {
+      await financeService.setChitMonthlyPayment(selected.id, month, amountPaid);
+      triggerToast(`${calendarMonth(selected.startMonth, month)} payment saved.`);
+      await refresh();
+      await simulate(selected, month, Number(bid));
+    } catch (error) {
+      triggerToast(error instanceof Error ? error.message : 'Could not save payment', 'error');
+    }
+  };
+
   const verifyTableAuction = async (month: number) => {
     if (!selected) return;
     try {
@@ -503,7 +539,7 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
                   Automatically calculated for all {selected.duration} months using projected or recorded auction payouts.
                 </p>
                 <p className="mt-2 text-[10px] text-[color:var(--claude-ink-sub)]">
-                  Profit/loss = winning payout − (all-life installments − terminal dividends). Paid through month is the cumulative installments only up to that month.
+                  Profit/loss = winning payout − (all-life installments − terminal dividends). Enter the actual amount paid each month; Total paid adds every month's amount one by one.
                 </p>
                 <p className="mt-1 text-[10px] text-[color:var(--claude-ink-sub)]">
                   Max discount = chit value − minimum winning payout needed to meet the target return.
@@ -515,8 +551,8 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
                     <tr>
                       <th className="w-[12%] px-3 py-3">Month</th>
                       <th className="w-[13%] px-3 py-3">Winning payout</th>
-                      <th className="w-[12%] px-3 py-3">Monthly installment</th>
-                      <th className="w-[11%] px-3 py-3">Amount paid</th>
+                      <th className="w-[12%] px-3 py-3">Amount paid this month</th>
+                      <th className="w-[11%] px-3 py-3">Total paid</th>
                       <th className="w-[12%] px-3 py-3">Profit / loss</th>
                       <th className="w-[8%] px-3 py-3">Return</th>
                       <th className="w-[14%] px-3 py-3" title="Chit value minus the minimum winning payout needed for the target return">Max discount</th>
@@ -551,18 +587,48 @@ export default function ChitTab({ triggerToast }: ChitTabProps) {
                           />
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
-                          {inr(
-                            scenario.monthlySchedule.find(
+                          {(() => {
+                            const scheduleRow = scenario.monthlySchedule.find(
                               (row) => row.month === scenario.withdrawalMonth,
-                            )?.installmentPaid ?? selected.monthlyInstallment,
-                          )}
+                            );
+                            const savedPayment = selected.payments?.find(
+                              (payment) => payment.month === scenario.withdrawalMonth,
+                            );
+                            return (
+                              <input
+                                key={`${scenario.withdrawalMonth}:${savedPayment?.amountPaid ?? scheduleRow?.installmentPaid ?? selected.monthlyInstallment}`}
+                                type="number"
+                                min="0"
+                                defaultValue={savedPayment?.amountPaid ?? scheduleRow?.installmentPaid ?? selected.monthlyInstallment}
+                                onBlur={(event) => {
+                                  const currentValue = savedPayment?.amountPaid ?? scheduleRow?.installmentPaid ?? selected.monthlyInstallment;
+                                  if (Number(event.target.value) !== currentValue) {
+                                    void saveTablePayment(scenario.withdrawalMonth, event.target.value);
+                                  }
+                                }}
+                                aria-label={`Enter amount paid for ${calendarMonth(selected.startMonth, scenario.withdrawalMonth)}`}
+                                className="w-28 rounded-lg border border-[color:var(--claude-border)] bg-transparent px-2 py-1.5 font-semibold"
+                              />
+                            );
+                          })()}
                         </td>
                         <td className="px-3 py-3 font-semibold whitespace-nowrap">
-                          {inr(
-                            scenario.monthlySchedule
+                          {inr((() => {
+                            const currentRow = scenario.monthlySchedule.find(
+                              (row) => row.month === scenario.withdrawalMonth,
+                            );
+                            if (Number.isFinite(currentRow?.totalAmountPaid)) {
+                              return currentRow?.totalAmountPaid ?? 0;
+                            }
+                            return scenario.monthlySchedule
                               .filter((row) => row.month <= scenario.withdrawalMonth)
-                              .reduce((sum, row) => sum + row.installmentPaid, 0),
-                          )}
+                              .reduce((sum, row) => {
+                                const savedPayment = selected.payments?.find(
+                                  (payment) => payment.month === row.month,
+                                );
+                                return sum + (savedPayment?.amountPaid ?? row.amountPaid ?? row.installmentPaid);
+                              }, 0);
+                          })())}
                         </td>
                         <td className={`px-3 py-3 font-semibold whitespace-nowrap ${scenario.nominalNetGain >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {scenario.nominalNetGain >= 0 ? '+' : ''}{inr(scenario.nominalNetGain)}

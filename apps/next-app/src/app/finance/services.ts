@@ -69,6 +69,11 @@ export interface ChitAuction {
   verified?: boolean;
 }
 
+export interface ChitPayment {
+  month: number;
+  amountPaid: number;
+}
+
 export interface Chit {
   id: string;
   name: string;
@@ -83,6 +88,7 @@ export interface Chit {
   firstAndLastFixed: boolean;
   terminalDividendMonths: number[];
   auctions: ChitAuction[];
+  payments?: ChitPayment[];
 }
 
 export interface ChitDashboard {
@@ -112,6 +118,8 @@ export interface ChitAnalysis {
     discount: number;
     dividendPerMember: number;
     installmentPaid: number;
+    amountPaid?: number;
+    totalAmountPaid?: number;
     terminalDividend: number;
     isActual: boolean;
     source?: 'ACTUAL' | 'PROJECTED';
@@ -528,6 +536,23 @@ export const financeService = {
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new Error(error.message || 'Failed to update chit');
+    }
+    return response.json();
+  },
+
+  async setChitMonthlyPayment(
+    id: string,
+    month: number,
+    amountPaid: number,
+  ): Promise<Chit> {
+    const response = await fetch(`${BASE_URL}/finance/chits/${id}/payments/${month}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amountPaid }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to save monthly payment');
     }
     return response.json();
   },
