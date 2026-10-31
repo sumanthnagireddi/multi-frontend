@@ -23,6 +23,10 @@ function applyTheme(theme: string) {
 
 export function ThemeSync() {
   useEffect(() => {
+    const savedTheme = localStorage.getItem('app-theme');
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      applyTheme(savedTheme);
+    }
     // Signal to Angular parent that this iframe is ready
     window.parent?.postMessage({ type: 'THEME_READY' }, '*');
 

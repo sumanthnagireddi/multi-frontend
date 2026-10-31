@@ -1,14 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './landing.html',
   styleUrls: ['./landing.css'],
 })
 export class LandingComponent implements OnInit, OnDestroy {
+  mobileMenuOpen = false;
   roles = ['Angular', 'React','Node JS', 'Nest JS', 'React', 'AI Native']
   roleIndex = signal(0);
 
@@ -24,11 +26,15 @@ export class LandingComponent implements OnInit, OnDestroy {
   displayedRole = signal('');
   private isDestroyed = false;
   private timerId: any;
+  private revealObserver?: IntersectionObserver;
+  private scrollListener?: EventListener;
+  private lastScrollY = 0;
 
   // Typewriter initializer hook
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
       this.runTypewriter();
+      requestAnimationFrame(() => this.initScrollEffects());
     }
   }
 
@@ -37,6 +43,40 @@ export class LandingComponent implements OnInit, OnDestroy {
     if (this.timerId) {
       clearTimeout(this.timerId);
     }
+    this.revealObserver?.disconnect();
+    if (this.scrollListener) window.removeEventListener('scroll', this.scrollListener);
+  }
+
+  private initScrollEffects(): void {
+    const elements = document.querySelectorAll('.clerk-home .reveal, .clerk-home .reveal-left, .clerk-home .reveal-right');
+    this.revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const target = entry.target as HTMLElement;
+        const currentScrollY = window.scrollY;
+        const scrollingDown = currentScrollY >= this.lastScrollY;
+
+        if (entry.isIntersecting) {
+          target.classList.remove('is-visible', 'reveal-enter-up', 'reveal-enter-down');
+          void target.offsetWidth;
+          target.classList.add('is-visible', scrollingDown ? 'reveal-enter-down' : 'reveal-enter-up');
+        } else {
+          target.classList.remove('is-visible', 'reveal-enter-up', 'reveal-enter-down');
+        }
+        this.lastScrollY = currentScrollY;
+      });
+    }, { threshold: [0, 0.08, 0.12, 0.35], rootMargin: '0px 0px -4% 0px' });
+    elements.forEach((element, index) => {
+      element.classList.add('reveal-ready');
+      element.setAttribute('style', `${element.getAttribute('style') || ''};--reveal-delay:${Math.min(index % 4, 3) * 70}ms`);
+      this.revealObserver?.observe(element);
+    });
+
+    this.scrollListener = () => {
+      const home = document.querySelector<HTMLElement>('.clerk-home');
+      if (home) home.style.setProperty('--scroll-y', `${Math.min(window.scrollY, 900)}px`);
+    };
+    window.addEventListener('scroll', this.scrollListener, { passive: true });
+    this.scrollListener(new Event('scroll'));
   }
 
   private async runTypewriter() {
@@ -100,13 +140,13 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   openLink(id: string): void {
     const links: Record<string, string> = {
-      github: 'https://github.com/your-profile',
-      linkedin: 'https://www.linkedin.com/in/your-profile',
-      twitter: 'https://twitter.com/your-profile',
+      github: 'https://github.com/sumanthnagireddi',
+      linkedin: 'https://www.linkedin.com/in/sumanth-nagireddi-7171081b7/',
+      twitter: 'https://twitter.com/sumanthnagireddi',
       mail: 'mailto:you@example.com',
-      instagram: 'https://www.instagram.com/your-profile',
-      facebook: 'https://www.facebook.com/your-profile',
-      whatsapp: 'https://wa.me/your-number',
+      instagram: 'https://www.instagram.com/sumanthnagireddi/',
+      facebook: 'https://www.facebook.com/sumanth.nagireddi',
+      whatsapp: 'https://wa.me/sumanth_nagireddi',
     };
 
     window.open(links[id] ?? links['github'], '_blank', 'noopener');

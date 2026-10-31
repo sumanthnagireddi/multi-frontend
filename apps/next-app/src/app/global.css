@@ -5,33 +5,41 @@
 @tailwind utilities;
 
 :root {
-  --canvas: #f9f6f0;
-  --canvas-strong: #f3eee3;
-  --ink: #191919;
+  --canvas: #f7f7f8;
+  --canvas-strong: #ededf0;
+  --ink: #18181b;
+  --muted: #71717a;
+  --accent: #6c47ff;
+  --accent-soft: #f0edff;
+  --border: #e4e4e7;
   --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --claude-bg: #f9f6f0;
-  --claude-bg-strong: #f3eee3;
+  --claude-bg: #f7f7f8;
+  --claude-bg-strong: #ededf0;
   --claude-card: #ffffff;
   --claude-ink: #191919;
-  --claude-ink-sub: #6b6863;
-  --claude-accent: #d97706;
-  --claude-accent-light: #fef3c7;
-  --claude-border: #e8e5df;
+  --claude-ink-sub: #71717a;
+  --claude-accent: #6c47ff;
+  --claude-accent-light: #f0edff;
+  --claude-border: #e4e4e7;
 }
 
 /* ─── Dark mode CSS variables ─────────────────────────────────────────────── */
 html.dark {
-  --canvas: #141413;
-  --canvas-strong: #1c1c1a;
-  --ink: #e6e4df;
-  --claude-bg: #141413;
-  --claude-bg-strong: #1c1c1a;
-  --claude-card: #1e1e1d;
-  --claude-ink: #e6e4df;
-  --claude-ink-sub: #9c9993;
-  --claude-accent: #f59e0b;
-  --claude-accent-light: rgba(245, 158, 11, 0.15);
-  --claude-border: #2e2d2a;
+  --canvas: #111827;
+  --canvas-strong: #1f2937;
+  --ink: #f4f4f5;
+  --muted: #94a3b8;
+  --accent: #a78bfa;
+  --accent-soft: rgba(139, 92, 246, 0.14);
+  --border: #334155;
+  --claude-bg: #111827;
+  --claude-bg-strong: #1f2937;
+  --claude-card: #172033;
+  --claude-ink: #f4f4f5;
+  --claude-ink-sub: #a1a1aa;
+  --claude-accent: #a78bfa;
+  --claude-accent-light: rgba(139, 92, 246, 0.16);
+  --claude-border: #334155;
 }
 
 @layer base {
@@ -43,18 +51,7 @@ html.dark {
   body {
     margin: 0;
     min-height: 100vh;
-    background:
-      radial-gradient(
-        circle at top left,
-        rgba(20, 184, 166, 0.18),
-        transparent 30%
-      ),
-      radial-gradient(
-        circle at right center,
-        rgba(251, 146, 60, 0.2),
-        transparent 24%
-      ),
-      linear-gradient(180deg, var(--canvas-strong), var(--canvas));
+    background: var(--canvas);
     color: var(--ink);
     transition: background 0.3s, color 0.3s;
   }
@@ -71,18 +68,7 @@ html.dark {
 
 /* ─── Dark Mode body override ─────────────────────────────────────────────── */
 html.dark body {
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(15, 118, 110, 0.10),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at right center,
-      rgba(30, 58, 138, 0.12),
-      transparent 24%
-    ),
-    linear-gradient(180deg, #1e293b, #0f172a);
+  background: var(--claude-bg);
   color: #e2e8f0;
 }
 
@@ -155,6 +141,215 @@ html.dark textarea {
 
 html.dark select option {
   background-color: var(--claude-card);
+}
+
+/* Clerk-style Finance workspace */
+.ai-clerk-workspace {
+  position: relative;
+  background-color: var(--canvas) !important;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: -1px -1px;
+}
+
+.ai-clerk-workspace::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 28%, var(--accent-soft), transparent 38%);
+  opacity: 0.75;
+}
+
+.ai-clerk-workspace > div {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
+.ai-clerk-workspace .max-w-3xl {
+  width: min(760px, 100%);
+  max-width: 760px;
+}
+
+.ai-clerk-workspace form {
+  border-radius: 18px !important;
+  background: color-mix(in srgb, var(--canvas-strong) 96%, transparent) !important;
+  box-shadow: 0 16px 44px rgba(24, 24, 27, 0.10) !important;
+  backdrop-filter: blur(18px);
+}
+
+.ai-clerk-workspace form textarea {
+  min-height: 64px !important;
+  padding: 18px 18px 10px !important;
+}
+
+.ai-clerk-workspace form button[type="submit"] {
+  border-radius: 50%;
+}
+
+.ai-clerk-workspace .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+.finance-clerk-page {
+  --finance-accent: var(--claude-accent);
+  --finance-accent-soft: var(--claude-accent-light);
+  min-height: 100vh;
+  background-color: var(--canvas);
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: -1px -1px;
+}
+
+.finance-clerk-header {
+  position: relative;
+  z-index: 20;
+  border: 0;
+  background: transparent;
+  padding: 18px 16px 0;
+}
+
+.finance-clerk-header > div:first-child {
+  width: min(1120px, 100%);
+  min-height: 62px;
+  margin: 0 auto;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--canvas-strong) 92%, transparent);
+  box-shadow: 0 10px 34px rgba(24, 24, 27, 0.06);
+  backdrop-filter: blur(16px);
+}
+
+.finance-clerk-header > div:first-child > div:first-child {
+  display: flex;
+  align-items: center;
+  min-width: 280px;
+}
+
+.finance-clerk-header > div:first-child > div:first-child > span:first-child {
+  display: none;
+}
+
+.finance-clerk-header h1 {
+  margin: 0 0 0 46px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 38px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.finance-clerk-header h1::before {
+  content: 'SN';
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  left: 12px;
+  top: 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--canvas-strong);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.finance-clerk-header p {
+  display: none;
+}
+
+.finance-clerk-header > div:first-child > div:last-child {
+  gap: 7px;
+}
+
+.finance-clerk-header > div:first-child button,
+.finance-clerk-header > div:first-child a {
+  min-height: 38px;
+  border-radius: 10px;
+}
+
+.finance-clerk-tabs {
+  width: min(1120px, 100%) !important;
+  margin: 10px auto 0 !important;
+  padding: 6px !important;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--canvas-strong);
+  box-shadow: 0 7px 24px rgba(24, 24, 27, 0.05);
+}
+
+.finance-clerk-tabs > div {
+  display: none;
+}
+
+.finance-clerk-tabs button {
+  min-height: 38px;
+  border: 0 !important;
+  border-radius: 9px;
+  color: var(--muted);
+  white-space: nowrap;
+  -webkit-margin-before: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.finance-clerk-tabs button[class*="claude-accent"] ,
+.finance-clerk-tabs button[class*="border-"][class*="text-"] {
+  color: var(--accent, var(--claude-accent)) !important;
+  background: var(--claude-accent-light);
+}
+
+.finance-clerk-main {
+  width: min(1120px, 100%) !important;
+  padding-top: 18px;
+}
+
+.finance-clerk-page [class*="rounded-2xl"] {
+  border-radius: 16px;
+}
+
+.finance-clerk-page [class*="shadow"] {
+  box-shadow: 0 8px 24px rgba(24, 24, 27, 0.06) !important;
+}
+
+@media (max-width: 767px) {
+  .finance-clerk-header {
+    padding: 12px 12px 0;
+  }
+
+  .finance-clerk-header > div:first-child {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .finance-clerk-header > div:first-child > div:first-child {
+    min-width: 120px;
+  }
+
+  .finance-clerk-header h1 {
+    margin-left: 46px;
+  }
+
+  .finance-clerk-header h1::before {
+    left: 12px;
+    top: 12px;
+  }
+
+  .finance-clerk-header > div:first-child > div:last-child {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .finance-clerk-tabs {
+    margin-top: 8px !important;
+    border-radius: 12px;
+  }
 }
 
 /* Hide scrollbars but keep functionality */

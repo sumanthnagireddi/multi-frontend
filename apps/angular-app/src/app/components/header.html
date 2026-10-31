@@ -1,95 +1,56 @@
-<header
-    class="sticky top-0 z-30 w-full border-b border-transparent max-md:border-gray-100 md:border-gray-100 bg-white dark:bg-slate-900 dark:border-slate-700 backdrop-blur-xl transition-colors duration-300">
-    <nav class="mx-auto flex items-center justify-between px-6 py-3 lg:px-8" aria-label="Global">
-        <div class="flex sm:flex-1">
-            <a routerLink="/" class="-m-1.5 p-1.5 flex items-center cursor-pointer group outline-none">
-                <div class="flex items-center text-2xl font-black tracking-tighter" style="font-family: 'Inter', sans-serif;">
-                    <span class="text-gray-400 dark:text-gray-500 transition-colors group-hover:text-gray-500 dark:group-hover:text-gray-400">&lt;&nbsp;</span>
-                    <span class="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent group-hover:from-purple-500 group-hover:to-pink-600 transition-all duration-500">SN</span>
-                    <span class="text-gray-400 dark:text-gray-500 transition-colors group-hover:text-gray-500 dark:group-hover:text-gray-400">&nbsp;/&gt;</span>
-                </div>
-            </a>
-        </div>
-        <div class="flex sm:hidden">
-            <button *ngIf="!openMenu" (click)="toggleMenu()" type="button"
-                class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-gray-200">
-                <span class="sr-only">Open main menu</span>
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                    aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
-            </button>
-            <button *ngIf="openMenu" (click)="toggleMenu()" type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700">
-                <span class="sr-only">Close menu</span>
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                    aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        <div class="hidden sm:flex sm:gap-x-12">
-            <a [routerLink]="['/app','next','ai']" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">AI</a>
-            <!-- <a [routerLink]="['/app','react','gold-prediction']" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">Gold</a> -->
-            <a
-              [routerLink]="['/app','react','resources']"
-              class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
-            >
-              Resources
-            </a>
-            <a
-              [routerLink]="['/app','next','finance']"
-              class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
-            >
-              Finance
-            </a>
-            <a href="#" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">Contact</a>
-            <a href="#" class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400">Projects</a>
-        </div>
-        <div class="hidden cursor-pointer sm:flex sm:flex-1 sm:justify-end items-center gap-3">
-            <!-- Theme Toggle -->
-            <button (click)="toggleTheme()"
-                class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700"
-                [attr.title]="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-                <span class="material-symbols-outlined text-xl">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
-            </button>
-            <button (click)="downloadPdf()"
-                class="inline-flex items-center justify-center rounded-xl bg-gray-900 dark:bg-gray-100 dark:text-gray-900 px-4 py-1.5 font-medium text-gray-50 transition-colors duration-200 hover:bg-gray-700 dark:hover:bg-gray-200 active:bg-gray-800">Download
-                CV</button>
-        </div>
-        <div class="mt-6 sm:hidden flow-root absolute p-4 px-8 bg-white dark:bg-slate-900 dark:border dark:border-slate-700 shadow-lg h-auto w-full top-[52px] z-10 right-0"
-            *ngIf="openMenu">
-            <div (click)="openMenu = false" class="-my-6 divide-y divide-gray-500/10 dark:divide-slate-700">
-                <div class="py-4 flex flex-col gap-3">
-                    <a [routerLink]="['/app','next','ai']" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">AI</a>
-                    <!-- <a [routerLink]="['/app','react','gold-prediction']" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">Blog</a> -->
-                    <a
-                      [routerLink]="['/app','react','resources']"
-                      class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      Resources
-                    </a>
-                    <a
-                      [routerLink]="['/app','next','finance']"
-                      class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      Finance
-                    </a>
-                    <a href="#" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">Contact</a>
-                    <a href="#" class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">Projects</a>
-                </div>
-                <div class="py-4 flex flex-col gap-3">
-                    <button (click)="toggleTheme(); $event.stopPropagation()"
-                        class="inline-flex items-center gap-2 rounded-xl bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 w-full justify-center">
-                        <span class="material-symbols-outlined text-xl">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
-                        {{ isDark ? 'Light Mode' : 'Dark Mode' }}
-                    </button>
-                    <button (click)="downloadPdf()"
-                        class="inline-flex items-center justify-center rounded-xl bg-gray-900 dark:bg-gray-100 dark:text-gray-900 px-4 py-2 font-medium text-gray-50 transition-colors duration-200 hover:bg-gray-700 dark:hover:bg-gray-200 active:bg-gray-800 w-full">Download
-                        CV</button>
-                </div>
-            </div>
-        </div>
-    </nav>
+<aside class="dashboard-sidebar" [class.mobile-open]="openMenu">
+  <a routerLink="/" class="sidebar-brand" aria-label="Private workspace home">
+    <span class="brand-mark">SN</span>
+    <span>
+      <strong>Workspace</strong>
+      <small>Personal dashboard</small>
+    </span>
+  </a>
 
-</header>
+  <nav class="sidebar-nav" aria-label="Primary navigation">
+    <span class="nav-label">Applications</span>
+    <a [routerLink]="['/app','next','finance']"
+       routerLinkActive="active"
+       class="nav-item">
+      <span class="material-symbols-outlined">account_balance_wallet</span>
+      <span>Finance</span>
+    </a>
+    <a [routerLink]="['/app','next','ai']"
+       routerLinkActive="active"
+       class="nav-item">
+      <span class="material-symbols-outlined">smart_toy</span>
+      <span>AI</span>
+    </a>
+    <a [routerLink]="['/app','react','resources']"
+       routerLinkActive="active"
+       class="nav-item">
+      <span class="material-symbols-outlined">library_books</span>
+      <span>Resources</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button type="button" class="sidebar-action" (click)="toggleTheme()"
+      [attr.title]="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+      <span class="material-symbols-outlined">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+      <span>{{ isDark ? 'Light mode' : 'Dark mode' }}</span>
+    </button>
+    <button type="button" class="sidebar-action" (click)="downloadPdf()">
+      <span class="material-symbols-outlined">download</span>
+      <span>Download CV</span>
+    </button>
+  </div>
+</aside>
+
+<button
+  type="button"
+  class="sidebar-mobile-toggle"
+  (click)="toggleMenu()"
+  [attr.aria-expanded]="openMenu"
+  aria-label="Toggle navigation">
+  <span class="material-symbols-outlined">{{ openMenu ? 'close' : 'menu' }}</span>
+</button>
+
+@if (openMenu) {
+  <button type="button" class="sidebar-backdrop" (click)="toggleMenu()" aria-label="Close navigation"></button>
+}

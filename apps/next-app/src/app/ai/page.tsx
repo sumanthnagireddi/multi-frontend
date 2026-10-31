@@ -100,72 +100,9 @@ export default function Chat() {
   ];
 
   return (
-    <div className="flex h-screen w-full bg-[#171717] text-zinc-300 font-sans overflow-hidden">
-      
-      {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-[260px] translate-x-0 opacity-100' : 'w-0 -translate-x-full opacity-0'} flex-shrink-0 bg-[#0a0a0a] border-r border-[#262626] flex flex-col transition-all duration-300 ease-in-out z-20`}>
-        <div className="flex items-center justify-between p-4">
-          <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-[#262626] rounded-md text-zinc-400 transition-colors">
-            <SidebarIcon />
-          </button>
-          <button onClick={handleNewChat} className="p-2 hover:bg-[#262626] rounded-md text-zinc-400 transition-colors">
-            <EditIcon />
-          </button>
-        </div>
-        <div className="px-3 py-2 space-y-1 w-[260px]">
-          <button onClick={handleNewChat} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-300 hover:bg-[#262626] rounded-lg transition-colors text-left border border-[#262626]">
-            <EditIcon /> New chat
-          </button>
-          <button onClick={() => setMessages([])} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-300 hover:bg-[#262626] rounded-lg transition-colors text-left">
-            <TrashIcon /> Delete current
-          </button>
-        </div>
-        <div className="mt-8 px-6 text-[10px] font-bold tracking-widest text-zinc-500 w-[260px]">HISTORY</div>
-        
-        <div className="flex-1 overflow-y-auto w-[260px] custom-scrollbar px-3 mt-2">
-          {chatHistory.length === 0 && messages.length === 0 ? (
-            <div className="px-3 py-2 text-[13px] text-zinc-500">
-              Your conversations will appear here once you start chatting!
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {messages.length > 0 && (
-                <button className="w-full text-left px-3 py-2 text-[13px] text-zinc-300 bg-[#262626] rounded-lg truncate">
-                  {messages[0].content.slice(0, 25) + '...'}
-                </button>
-              )}
-              {chatHistory.map(chat => (
-                <button key={chat.id} className="w-full text-left px-3 py-2 text-[13px] text-zinc-400 hover:bg-[#262626]/50 hover:text-zinc-300 rounded-lg transition-colors truncate">
-                  {chat.title}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        
-        <div className="mt-auto p-4 flex items-center justify-between w-[260px] border-t border-[#262626]">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-emerald-800 flex items-center justify-center text-xs text-white">G</div>
-            <span className="text-[13px] font-medium text-zinc-300">Guest</span>
-          </div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-zinc-500"><polyline points="18 15 12 9 6 15"></polyline></svg>
-        </div>
-      </div>
-
+    <div className="ai-clerk-page ai-clerk-workspace flex h-screen w-full bg-[var(--canvas)] text-[var(--ink)] font-sans overflow-hidden">
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col relative h-full bg-[#171717] transition-all duration-300">
-        
-        {/* Top Navbar */}
-        <div className="absolute top-0 left-0 right-0 h-14 flex items-center justify-between px-4 z-10 bg-[#171717]/80 backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            {!isSidebarOpen && (
-              <button onClick={() => setIsSidebarOpen(true)} className="p-2 hover:bg-[#262626] rounded-md text-zinc-400 transition-colors animate-in fade-in duration-300">
-                <SidebarIcon />
-              </button>
-            )}
-          </div>
-          {/* Removed Lock and Deploy buttons as requested */}
-        </div>
+      <div className="flex-1 flex flex-col relative h-full bg-[var(--canvas)] transition-all duration-300">
 
         {/* Chat Scroll Area */}
         <div className="flex-1 overflow-y-auto px-4 w-full">
@@ -174,15 +111,15 @@ export default function Chat() {
             {/* Empty State */}
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center mt-12 md:mt-32 w-full animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out">
-                <h1 className="text-[32px] md:text-[40px] font-semibold text-white tracking-tight text-center mb-2">What can I help with?</h1>
-                <p className="text-[#a1a1aa] mb-10 text-center text-[15px]">Ask a question, write code, or explore ideas.</p>
+                <h1 className="text-[32px] md:text-[40px] font-semibold text-[var(--ink)] tracking-tight text-center mb-2">What can I help with?</h1>
+                <p className="text-[var(--muted)] mb-10 text-center text-[15px]">Ask a question, write code, or explore ideas.</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl mt-4">
                   {suggestions.map((text, i) => (
                     <button 
                       key={i}
                       onClick={() => append({ role: 'user', content: text })}
-                      className="px-5 py-4 rounded-[14px] border border-[#262626] bg-transparent hover:bg-[#262626]/50 transition-all text-left text-[13.5px] text-[#a1a1aa] hover:text-zinc-300 flex items-center h-[60px] shadow-sm transform hover:scale-[1.02] duration-200"
+                      className="px-5 py-4 rounded-[14px] border border-[var(--border)] bg-[var(--canvas-strong)] hover:bg-[var(--accent-soft)] transition-all text-left text-[13.5px] text-[var(--muted)] hover:text-[var(--ink)] flex items-center h-[60px] shadow-sm transform hover:scale-[1.02] duration-200"
                     >
                       {text}
                     </button>
@@ -199,7 +136,7 @@ export default function Chat() {
                   <div key={m.id} className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} group animate-in slide-in-from-bottom-3 fade-in duration-300`}>
                     
                     {!isUser && (
-                      <div className="w-8 h-8 rounded-full border border-zinc-700 bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 mr-3 mt-1 text-zinc-300 shadow-sm">
+                      <div className="w-8 h-8 rounded-full border border-[var(--border)] bg-[var(--canvas-strong)] flex items-center justify-center flex-shrink-0 mr-3 mt-1 text-[var(--ink)] shadow-sm">
                         <selectedModel.icon />
                       </div>
                     )}
@@ -208,11 +145,11 @@ export default function Chat() {
                       <div 
                         className={`px-5 py-3.5 rounded-[22px] text-[15px] shadow-sm leading-relaxed ${
                           isUser 
-                            ? 'bg-[#ededed] text-zinc-900 rounded-tr-[4px]' 
-                            : 'bg-[#262626] text-zinc-200 rounded-tl-[4px] border border-[#3f3f46]/50'
+                            ? 'bg-[var(--ink)] text-[var(--canvas-strong)] rounded-tr-[4px]' 
+                            : 'bg-[var(--canvas-strong)] text-[var(--ink)] rounded-tl-[4px] border border-[var(--border)]'
                         }`}
                       >
-                        <div className={`prose max-w-none whitespace-pre-wrap break-words ${isUser ? 'prose-zinc font-medium' : 'prose-invert'}`}>
+                        <div className={`prose max-w-none whitespace-pre-wrap break-words text-[var(--ink)] ${isUser ? 'font-medium' : ''}`}>
                           {m.content}
                         </div>
                       </div>
@@ -227,21 +164,21 @@ export default function Chat() {
         </div>
 
         {/* Input Area */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#171717] via-[#171717] to-transparent pt-12 pb-6">
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[var(--canvas)] via-[var(--canvas)] to-transparent pt-12 pb-6">
           <div className="max-w-3xl mx-auto w-full relative">
             
             {/* Model Selector Dropdown Menu */}
             {isModelDropdownOpen && (
-              <div className="absolute bottom-16 left-2 w-[340px] bg-[#1a1a1a] border border-[#262626] rounded-xl shadow-2xl z-20 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-200">
-                <div className="p-3 pb-2 border-b border-[#262626]/50">
-                  <div className="relative flex items-center w-full bg-[#0a0a0a] rounded-lg border border-[#262626]">
-                    <div className="absolute left-3 text-zinc-500"><SearchIcon /></div>
-                    <input type="text" placeholder="Search models..." className="bg-transparent text-[13px] text-white outline-none w-full placeholder-[#52525b] py-2 pl-9 pr-3" />
+              <div className="absolute bottom-16 left-2 right-2 md:right-auto w-auto md:w-[340px] bg-[var(--canvas-strong)] border border-[var(--border)] rounded-xl shadow-2xl z-20 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="p-3 pb-2 border-b border-[var(--border)]">
+                  <div className="relative flex items-center w-full bg-[var(--canvas)] rounded-lg border border-[var(--border)]">
+                    <div className="absolute left-3 text-[var(--muted)]"><SearchIcon /></div>
+                    <input type="text" placeholder="Search models..." className="bg-transparent text-[13px] text-[var(--ink)] outline-none w-full placeholder-[var(--muted)] py-2 pl-9 pr-3" />
                   </div>
                 </div>
                 
                 <div className="overflow-y-auto max-h-[300px] p-2 custom-scrollbar">
-                  <div className="px-3 py-1 text-[11px] font-semibold text-[#52525b] mt-1 mb-1 tracking-wider uppercase">Available</div>
+                  <div className="px-3 py-1 text-[11px] font-semibold text-[var(--muted)] mt-1 mb-1 tracking-wider uppercase">Available</div>
                   {[
                     { id: 'DeepSeek V3.2', icon: WhaleIcon, icons: [WrenchIcon] },
                     { id: 'Kimi K2.5', icon: GenericBotIcon, icons: [WrenchIcon, EyeIcon, BoxIcon] },
@@ -254,31 +191,31 @@ export default function Chat() {
                       <button 
                         key={model.id}
                         onClick={() => { setSelectedModel(model); setIsModelDropdownOpen(false); }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 text-[13px] rounded-lg text-left transition-colors ${isActive ? 'bg-[#262626] text-white' : 'text-[#a1a1aa] hover:bg-[#262626]/50 hover:text-zinc-200'}`}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 text-[13px] rounded-lg text-left transition-colors ${isActive ? 'bg-[var(--accent-soft)] text-[var(--accent)]' : 'text-[var(--muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)]'}`}
                       >
                         <div className="flex items-center gap-3">
                           <model.icon /> {model.id}
                         </div>
-                        <div className="flex items-center gap-1.5 text-[#52525b]">
+                        <div className="flex items-center gap-1.5 text-[var(--muted)]">
                           {model.icons.map((Icon, idx) => <Icon key={idx} />)}
                         </div>
                       </button>
                     );
                   })}
                   
-                  <div className="px-3 py-1 text-[11px] font-semibold text-[#52525b] mt-3 mb-1 tracking-wider uppercase">Alibaba</div>
+                  <div className="px-3 py-1 text-[11px] font-semibold text-[var(--muted)] mt-3 mb-1 tracking-wider uppercase">Alibaba</div>
                   {[
                     { id: 'Qwen3-14B', icon: GenericBotIcon, icons: [WrenchIcon, LockIcon] },
                   ].map((model) => (
                     <button 
                       key={model.id}
                       onClick={() => { setSelectedModel(model); setIsModelDropdownOpen(false); }}
-                      className="w-full flex items-center justify-between px-3 py-2.5 text-[13px] text-[#a1a1aa] hover:bg-[#262626]/50 hover:text-zinc-200 rounded-lg text-left transition-colors"
+                      className="w-full flex items-center justify-between px-3 py-2.5 text-[13px] text-[var(--muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)] rounded-lg text-left transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <model.icon /> {model.id}
                       </div>
-                      <div className="flex items-center gap-1.5 text-[#52525b]">
+                      <div className="flex items-center gap-1.5 text-[var(--muted)]">
                         {model.icons.map((Icon, idx) => <Icon key={idx} />)}
                       </div>
                     </button>
@@ -288,7 +225,7 @@ export default function Chat() {
             )}
 
             {/* Input Form */}
-            <form onSubmit={handleSubmit} className="relative flex flex-col bg-[#262626] border border-transparent rounded-[20px] focus-within:ring-2 focus-within:ring-zinc-600 transition-all shadow-md">
+            <form onSubmit={handleSubmit} className="relative flex flex-col bg-[var(--canvas-strong)] border border-[var(--border)] rounded-[20px] focus-within:ring-2 focus-within:ring-[var(--accent)] transition-all shadow-md">
               
               <textarea
                 value={input}
@@ -300,19 +237,19 @@ export default function Chat() {
                   }
                 }}
                 placeholder="Ask a question..."
-                className="w-full bg-transparent min-h-[52px] max-h-[200px] py-4 px-4 outline-none text-zinc-100 placeholder-[#a1a1aa] resize-none text-[15px]"
+                className="w-full bg-transparent min-h-[52px] max-h-[200px] py-4 px-4 outline-none text-[var(--ink)] placeholder-[var(--muted)] resize-none text-[15px]"
                 rows={1}
               />
               
               <div className="flex items-center justify-between px-2 pb-2">
                 <div className="flex items-center gap-1">
-                  <button type="button" className="p-2 text-[#a1a1aa] hover:text-white hover:bg-[#3f3f46] rounded-xl transition-all">
+                  <button type="button" className="p-2 text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--accent-soft)] rounded-xl transition-all">
                     <PaperclipIcon />
                   </button>
                   <button 
                     type="button" 
                     onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium text-[#a1a1aa] hover:text-white hover:bg-[#3f3f46] rounded-xl transition-all"
+                    className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--accent-soft)] rounded-xl transition-all"
                   >
                     <selectedModel.icon /> {selectedModel.id}
                   </button>
@@ -321,7 +258,7 @@ export default function Chat() {
                 <button
                   type="submit"
                   disabled={!input.trim()}
-                  className="w-[34px] h-[34px] rounded-full bg-white text-black disabled:bg-[#3f3f46] disabled:text-[#71717a] transition-all flex items-center justify-center mr-1 shadow-sm hover:scale-105 disabled:hover:scale-100 active:scale-95"
+                  className="w-[34px] h-[34px] rounded-full bg-[var(--ink)] text-[var(--canvas-strong)] disabled:bg-[var(--border)] disabled:text-[var(--muted)] transition-all flex items-center justify-center mr-1 shadow-sm hover:scale-105 disabled:hover:scale-100 active:scale-95"
                 >
                   <ArrowUpIcon />
                 </button>
@@ -336,11 +273,11 @@ export default function Chat() {
                 background: transparent;
               }
               .custom-scrollbar::-webkit-scrollbar-thumb {
-                background: #3f3f46;
+                background: var(--border);
                 border-radius: 10px;
               }
               .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                background: #52525b;
+                background: var(--muted);
               }
             `}</style>
           </div>

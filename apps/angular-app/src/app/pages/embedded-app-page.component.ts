@@ -29,12 +29,12 @@ import {
         </div>
       }
       @if (app && safeUrl) {
-        <div class="overflow-hidden">
+        <div class="h-[100vh] overflow-hidden">
           <iframe
             #embeddedIframe
             [src]="safeUrl"
             (load)="onIframeLoad()"
-            class="h-[91vh] w-full border-0 bg-white dark:bg-slate-900"
+            class="h-[100vh] w-full border-0 bg-white dark:bg-slate-900"
             [title]="app.name"
           ></iframe>
         </div>

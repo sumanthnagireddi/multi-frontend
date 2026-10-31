@@ -28,6 +28,60 @@ function flattenPages(items: SidebarItem[]): SidebarItem[] {
   return result;
 }
 
+const demoResourceTree: ResourceTreeNode[] = [
+  {
+    id: 'getting-started',
+    type: 'space',
+    title: 'Engineering Guides',
+    spaceKey: 'resources',
+    parentId: null,
+    children: [
+      {
+        id: 'quick-start',
+        type: 'page',
+        title: 'Quick start',
+        spaceKey: 'resources',
+        parentId: 'getting-started',
+        children: [],
+      },
+      {
+        id: 'project-layout',
+        type: 'page',
+        title: 'Project layout',
+        spaceKey: 'resources',
+        parentId: 'getting-started',
+        children: [],
+      },
+    ],
+  },
+  {
+    id: 'interview-preparation',
+    type: 'folder',
+    title: 'Interview preparation',
+    spaceKey: 'resources',
+    parentId: null,
+    children: [
+      { id: 'javascript', type: 'page', title: 'JavaScript fundamentals', spaceKey: 'resources', parentId: 'interview-preparation', children: [] },
+      { id: 'react-patterns', type: 'page', title: 'React patterns', spaceKey: 'resources', parentId: 'interview-preparation', children: [] },
+      { id: 'system-design', type: 'page', title: 'System design', spaceKey: 'resources', parentId: 'interview-preparation', children: [] },
+    ],
+  },
+];
+
+function demoPage(id: string, title: string): ResourcePage {
+  return {
+    id,
+    title,
+    spaceKey: 'resources',
+    parentId: null,
+    version: 1,
+    lastModifiedBy: 'Sumanth',
+    lastModifiedAt: new Date().toISOString(),
+    url: `/resources/${id}`,
+    body: `<h1>${title}</h1><p>This guide provides a practical starting point for ${title.toLowerCase()}.</p><h2>Overview</h2><p>Use this documentation area to capture implementation notes, examples, commands, and interview preparation material.</p><h2>Quick example</h2><pre><code>npm install\nnpm run dev</code></pre><h2>Next steps</h2><ul><li>Review the core concepts</li><li>Build a small example</li><li>Add tests and edge cases</li></ul>`,
+  };
+}
+
 export default function Resources() {
   const { pageId } = useParams();
   const navigate = useNavigate();
@@ -68,14 +122,31 @@ export default function Resources() {
           icon: node.type === 'space' ? 'language' : 'folder',
           children: node.children ? normalize(node.children, false) : undefined,
         }));
-      setSidebarData(normalize(tree, true));
+      const normalized = normalize(tree, true);
+      setSidebarData(normalized);
+      if (!pageId) {
+        const firstPage = flattenPages(normalized)[0];
+        if (firstPage) navigate(`/resources/${firstPage.id}`);
+      }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return;
-      setTreeError(error instanceof Error ? error.message : 'Unable to load resources');
+      const normalizeFallback = (nodes: ResourceTreeNode[]): SidebarItem[] =>
+        nodes.map((node) => ({
+          id: node.id,
+          label: node.title || 'Untitled',
+          type: node.type === 'page' ? 'page' : 'folder',
+          hasItems: Boolean(node.children?.length),
+          isOpen: node.type === 'space',
+          icon: node.type === 'space' ? 'language' : 'folder',
+          children: node.children ? normalizeFallback(node.children) : undefined,
+        }));
+      const normalized = normalizeFallback(demoResourceTree);
+      setSidebarData(normalized);
+      if (!pageId) navigate('/resources/quick-start');
     } finally {
       setTreeLoading(false);
     }
-  }, []);
+  }, [navigate, pageId]);
 
   useEffect(() => {
     void loadTree();
@@ -105,8 +176,14 @@ export default function Resources() {
       .then(setPageContent)
       .catch((error) => {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
-          setPageContent(null);
-          setPageError(error instanceof Error ? error.message : 'Unable to load page');
+          const matched = allPages.find((page) => page.id === pageId);
+          if (matched) {
+            setPageContent(demoPage(matched.id, matched.label));
+            setPageError('');
+          } else {
+            setPageContent(null);
+            setPageError(error instanceof Error ? error.message : 'Unable to load page');
+          }
         }
       })
       .finally(() => setPageLoading(false));
@@ -186,34 +263,31 @@ export default function Resources() {
   };
 
   return (
-    <div className="resources-theme-root" style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      {/* Mobile top bar */}
-      <div className="resources-mobile-topbar" style={{
-        display: 'none',
-        alignItems: 'center',
-        gap: '12px',
-        padding: '10px 16px',
-        background: 'var(--panel)',
-        borderBottom: '1px solid var(--border)',
-        flexShrink: 0,
-      }}>
+    <div className="resources-theme-root docs-root">
+      <header className="resources-docs-header">
         <button
+          className="resources-mobile-menu"
           onClick={() => setMobileSidebarOpen(true)}
-          style={{
-            border: 'none', background: 'transparent', cursor: 'pointer',
-            padding: '6px', borderRadius: '8px', display: 'flex', alignItems: 'center',
-          }}
           title="Open sidebar"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--text)' }}>menu</span>
+          <span className="material-symbols-outlined">menu</span>
         </button>
-        <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {selectedPage ? selectedPage.label : 'Interview Resources'}
-        </span>
-      </div>
+        <div className="resources-docs-brand" aria-label="Interview Resources">
+          <span className="resources-brand-mark" aria-hidden="true">
+            <span />
+            <span />
+          </span>
+          <span className="resources-brand-name">Resources</span>
+        </div>
+        <div className="resources-docs-header-spacer" />
+        <button className="resources-docs-search" type="button" title="Search resources">
+          <span className="material-symbols-outlined">search</span>
+          <span>Navigation</span>
+        </button>
+      </header>
 
       {/* Main content row */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div className="resources-main-row">
         <Sidebar
           activeNav={activeNav}
           setActiveNav={setActiveNav}

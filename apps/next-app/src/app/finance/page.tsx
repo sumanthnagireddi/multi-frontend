@@ -511,11 +511,11 @@ export default function FinanceDashboard() {
   }, [cards]);
 
   return (
-    <div className="min-h-screen bg-[color:var(--claude-bg)] text-[color:var(--claude-ink)] font-sans antialiased pb-16 transition-colors duration-300">
+    <div className="finance-clerk-page min-h-screen bg-[color:var(--canvas)] text-[color:var(--ink)] font-sans antialiased transition-colors duration-300">
       
       {/* Editorial Claude Header */}
-      <header className="border-b border-[color:var(--claude-border)] bg-[color:var(--claude-card)] py-8">
-        <div className="mx-auto max-w-6xl px-6 md:px-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <header className="finance-clerk-header">
+        <div className="mx-auto max-w-7xl px-6 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <span className="text-[10px] tracking-[0.3em] font-semibold text-[color:var(--claude-accent)] uppercase block mb-1">
               Private Ledger
@@ -572,7 +572,11 @@ export default function FinanceDashboard() {
         </div>
 
         {/* Tab Controls */}
-        <div className="w-full mx-auto max-w-6xl mt-8 flex gap-1 border-b border-[color:var(--claude-border)]/50 overflow-x-auto scrollbar-none flex-nowrap px-6 md:px-12">
+        <div className="finance-clerk-tabs w-full mx-auto mt-4 flex gap-1 overflow-x-auto scrollbar-none flex-nowrap px-6 md:px-12">
+          <div className="hidden lg:block px-3 pb-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--claude-accent)]">Private ledger</p>
+            <h2 className="mt-1 text-lg font-semibold">Finance</h2>
+          </div>
           {[
             { id: 'overview', label: 'Overview', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg> },
             { id: 'personal', label: 'Personal Expenses', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> },
@@ -582,9 +586,9 @@ export default function FinanceDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 ${
+              className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 lg:w-full lg:justify-start lg:rounded-xl lg:border-b-0 lg:-mb-0 lg:px-3 ${
                 activeTab === tab.id
-                  ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold'
+                  ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold lg:border-transparent lg:bg-[color:var(--claude-accent-light)]'
                   : 'border-transparent text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)]'
               }`}
             >
@@ -598,9 +602,9 @@ export default function FinanceDashboard() {
             <button
               key={proj.key}
               onClick={() => setActiveTab(`project-${proj.key}`)}
-              className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 ${
+              className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 lg:w-full lg:justify-start lg:rounded-xl lg:border-b-0 lg:-mb-0 lg:px-3 ${
                 activeTab === `project-${proj.key}`
-                  ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold'
+                  ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold lg:border-transparent lg:bg-[color:var(--claude-accent-light)]'
                   : 'border-transparent text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)]'
               }`}
             >
@@ -612,9 +616,9 @@ export default function FinanceDashboard() {
           {/* Debts tab at the end */}
           <button
             onClick={() => setActiveTab('debts')}
-            className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 ${
+            className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 lg:w-full lg:justify-start lg:rounded-xl lg:border-b-0 lg:-mb-0 lg:px-3 ${
               activeTab === 'debts'
-                ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold'
+                ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold lg:border-transparent lg:bg-[color:var(--claude-accent-light)]'
                 : 'border-transparent text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)]'
             }`}
           >
@@ -625,7 +629,7 @@ export default function FinanceDashboard() {
       </header>
 
       {/* Main dashboard content */}
-      <main className="mx-auto max-w-6xl px-6 md:px-12 mt-8">
+      <main className="finance-clerk-main mx-auto max-w-7xl px-5 md:px-8 mt-7 pb-16">
         
         {loading ? (
           <div className="flex flex-col justify-center items-center py-20 gap-4">

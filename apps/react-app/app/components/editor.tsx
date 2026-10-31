@@ -161,6 +161,45 @@ export function Editor({
   
   const initialContent = useMemo(() => normalizeInitialContent(rawContent), [rawContent]);
 
+  const tableOfContents = useMemo(() => {
+    if (!rawContent || typeof rawContent !== 'string') return [];
+    if (rawContent.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(rawContent);
+        const items: Array<{ id: string; text: string; level: number }> = [];
+        const visit = (node: any) => {
+          if (node?.type === 'heading' && node.attrs?.level) {
+            const text = (node.content || []).map((child: any) => child.text || '').join('').trim();
+            if (text) {
+              items.push({
+                id: text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+                text,
+                level: Number(node.attrs.level),
+              });
+            }
+          }
+          node?.content?.forEach(visit);
+        };
+        visit(parsed);
+        return items;
+      } catch {
+        // Fall through to HTML parsing.
+      }
+    }
+    if (!/<h[1-3][\s>]/i.test(rawContent)) return [];
+    const container = document.createElement('div');
+    container.innerHTML = rawContent;
+    return Array.from(container.querySelectorAll('h1, h2, h3')).map((heading, index) => {
+      const text = heading.textContent?.trim() || '';
+      const level = Number(heading.tagName.substring(1));
+      return {
+        id: heading.id || text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `section-${index}`,
+        text,
+        level,
+      };
+    }).filter(item => item.text);
+  }, [rawContent]);
+
   const editorProps = useMemo(() => ({
     appearance: resolvedAppearance,
     placeholder,
@@ -253,22 +292,17 @@ export function Editor({
 
   return (
     <EditorContext>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px', height: '48px', background: 'var(--panel)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)' }}>
-            Editing: <strong style={{ color: 'var(--accent)' }}>{selectedPage.label}</strong>
+      <div className="docs-editor-shell">
+        <div className="docs-actionbar">
+          <div className="docs-breadcrumb">
+            Resources <span>/</span> <strong>{selectedPage.label}</strong>
           </div>
-          <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+          <div className="docs-actions">
             <button
+              className="docs-save-button"
               onClick={() => void onSave(draftBody || pageContent?.body || '')}
               style={{
-                background: saving ? 'var(--text-faint)' : 'var(--accent)',
-                color: 'var(--panel)',
                 border: 'none',
-                borderRadius: '4px',
-                padding: '6px 14px',
-                fontSize: '12.5px',
-                fontWeight: 600,
                 cursor: saving ? 'wait' : 'pointer',
               }}
               disabled={saving}
@@ -276,15 +310,11 @@ export function Editor({
               {saving ? 'Saving…' : 'Save'}
             </button>
             <button
+              className="docs-complete-button"
               onClick={handleComplete}
               style={{
                 background: completedIds.has(selectedPage.id) ? 'var(--good)' : 'transparent',
                 color: completedIds.has(selectedPage.id) ? 'var(--panel)' : 'var(--text)',
-                border: '1px solid var(--border-strong)',
-                borderRadius: '4px',
-                padding: '6px 14px',
-                fontSize: '12.5px',
-                fontWeight: 600,
                 cursor: 'pointer',
               }}
             >
@@ -292,18 +322,52 @@ export function Editor({
             </button>
           </div>
         </div>
-        <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
+        <div className="docs-editor-scroll">
           {saveError && (
             <div style={{ maxWidth: '760px', margin: '0 auto 12px', color: 'var(--bad)', fontSize: '13px' }}>
               {saveError}
             </div>
           )}
-          <ComposableEditor
-            key={selectedPage.id}
-            preset={preset}
-            appearance={resolvedAppearance}
-            onChange={handleChange}
-          />
+          <main className="docs-article-layout">
+            <article className="docs-article">
+              <header className="docs-article-header">
+                <h1>{selectedPage.label}</h1>
+                <p>Interview resource and study guide.</p>
+                <button className="docs-markdown-button" type="button">
+                  <span aria-hidden="true">M↓</span>
+                  <span>View as Markdown</span>
+                </button>
+              </header>
+              <div className="docs-editor-content">
+                <ComposableEditor
+                  key={selectedPage.id}
+                  preset={preset}
+                  appearance={resolvedAppearance}
+                  onChange={handleChange}
+                />
+              </div>
+            </article>
+            <aside className="docs-toc" aria-label="On this page">
+              <div className="docs-toc-inner">
+                <div className="docs-toc-title">On this page</div>
+                {tableOfContents.length > 0 ? tableOfContents.map(item => (
+                  <button
+                    key={`${item.id}-${item.text}`}
+                    type="button"
+                    className={item.level === 3 ? 'toc-level-3' : ''}
+                    onClick={() => {
+                      const target = document.querySelector(`[id="${CSS.escape(item.id)}"]`);
+                      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
+                  >
+                    {item.text}
+                  </button>
+                )) : (
+                  <button type="button" className="toc-current">{selectedPage.label}</button>
+                )}
+              </div>
+            </aside>
+          </main>
         </div>
       </div>
     </EditorContext>

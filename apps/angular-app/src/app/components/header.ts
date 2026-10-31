@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, RouterLinkActive, CommonModule],
   templateUrl: './header.html',
   styleUrls: ['./header.css'],
 })
