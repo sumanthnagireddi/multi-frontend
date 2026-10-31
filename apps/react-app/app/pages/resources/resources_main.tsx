@@ -1,8 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Sidebar } from '../../components/sidebar';
 import { Editor } from '../../components/editor';
-import { SIDEBAR_DATA, SidebarItem } from '../../constants/sidebar.consts';
+import { SidebarItem } from '../../constants/sidebar.consts';
+import {
+  resourceApi,
+  ResourcePage,
+  ResourceTreeNode,
+} from '@unified-frontend-monorepo/workspace-data';
 import './resources.css';
 
 // Count total pages recursively
@@ -27,7 +32,14 @@ export default function Resources() {
   const { pageId } = useParams();
   const navigate = useNavigate();
   
-  const [sidebarData, setSidebarData] = useState<SidebarItem[]>(SIDEBAR_DATA);
+  const [sidebarData, setSidebarData] = useState<SidebarItem[]>([]);
+  const [treeError, setTreeError] = useState('');
+  const [treeLoading, setTreeLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [pageError, setPageError] = useState('');
+  const [pageContent, setPageContent] = useState<ResourcePage | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [activeNav, setActiveNav] = useState('home');
   const [selectedPage, setSelectedPage] = useState<SidebarItem | null>(null);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
@@ -39,6 +51,67 @@ export default function Resources() {
   const allPages = useMemo(() => flattenPages(sidebarData), [sidebarData]);
   const done = completedIds.size;
   const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const loadTree = useCallback(async () => {
+    const controller = new AbortController();
+    setTreeLoading(true);
+    setTreeError('');
+    try {
+      const tree = await resourceApi.getTree(undefined, controller.signal);
+      const normalize = (nodes: ResourceTreeNode[], parentOpen = false): SidebarItem[] =>
+        nodes.map((node) => ({
+          id: node.id,
+          label: node.title || 'Untitled',
+          type: node.type === 'page' ? 'page' : 'folder',
+          hasItems: Boolean(node.children?.length),
+          isOpen: parentOpen,
+          icon: node.type === 'space' ? 'language' : 'folder',
+          children: node.children ? normalize(node.children, false) : undefined,
+        }));
+      setSidebarData(normalize(tree, true));
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      setTreeError(error instanceof Error ? error.message : 'Unable to load resources');
+    } finally {
+      setTreeLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadTree();
+    try {
+      const stored = JSON.parse(localStorage.getItem('resource-completed-pages') || '[]');
+      if (Array.isArray(stored)) setCompletedIds(new Set(stored.filter((id) => typeof id === 'string')));
+    } catch {
+      localStorage.removeItem('resource-completed-pages');
+    }
+  }, [loadTree]);
+
+  useEffect(() => {
+    localStorage.setItem('resource-completed-pages', JSON.stringify([...completedIds]));
+  }, [completedIds]);
+
+  useEffect(() => {
+    if (!pageId || !allPages.some((page) => page.id === pageId)) {
+      setPageContent(null);
+      setPageError('');
+      return;
+    }
+    const controller = new AbortController();
+    setPageLoading(true);
+    setPageError('');
+    setSaveError('');
+    resourceApi.getPage(pageId, controller.signal)
+      .then(setPageContent)
+      .catch((error) => {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          setPageContent(null);
+          setPageError(error instanceof Error ? error.message : 'Unable to load page');
+        }
+      })
+      .finally(() => setPageLoading(false));
+    return () => controller.abort();
+  }, [pageId, allPages]);
 
   // Sync route param pageId to selectedPage state
   useEffect(() => {
@@ -86,6 +159,29 @@ export default function Resources() {
     setSidebarData(prev => updateTitleRecursive(prev));
     if (selectedPage && selectedPage.id === pageId) {
       setSelectedPage(prev => prev ? { ...prev, label: newTitle } : null);
+    }
+  };
+
+  const handleSavePage = async (body: string) => {
+    if (!selectedPage) return;
+    setSaving(true);
+    setSaveError('');
+    try {
+      const updated = await resourceApi.updatePage(selectedPage.id, selectedPage.label, body);
+      setPageContent(updated);
+      setSidebarData((current) => {
+        const updateRecursive = (items: SidebarItem[]): SidebarItem[] =>
+          items.map((item) => ({
+            ...item,
+            label: item.id === updated.id ? updated.title : item.label,
+            children: item.children ? updateRecursive(item.children) : undefined,
+          }));
+        return updateRecursive(current);
+      });
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Unable to save page');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -146,6 +242,15 @@ export default function Resources() {
           progress={progress}
           allPages={allPages}
           onUpdatePageTitle={handleUpdatePageTitle}
+          pageContent={pageContent}
+          pageLoading={pageLoading}
+          pageError={pageError}
+          saving={saving}
+          saveError={saveError}
+          onSave={handleSavePage}
+          treeLoading={treeLoading}
+          treeError={treeError}
+          onRetryTree={loadTree}
         />
       </div>
     </div>

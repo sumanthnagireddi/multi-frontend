@@ -1,10 +1,11 @@
 // @ts-nocheck
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ComposableEditor } from '@atlaskit/editor-core/composable-editor';
 import { useUniversalPreset } from '@atlaskit/editor-core/preset-universal';
 import { EditorContext } from '@atlaskit/editor-core';
 import { createADFFromHTML } from '@atlaskit/editor-common/dist/esm/utils/create-adf-from-html';
 import type { JSONDocNode } from '@atlaskit/editor-json-transformer';
+import type { ResourcePage } from '@unified-frontend-monorepo/workspace-data';
 
 export type AtlasEditorAppearance = 'comment' | 'full-page' | 'full-width';
 export type AtlasEditorMode = 'edit' | 'view';
@@ -33,6 +34,15 @@ interface EditorProps {
   progress: number;
   allPages: any[];
   onUpdatePageTitle: (pageId: string, newTitle: string) => void;
+  pageContent: ResourcePage | null;
+  pageLoading: boolean;
+  pageError: string;
+  saving: boolean;
+  saveError: string;
+  onSave: (body: string) => Promise<void>;
+  treeLoading: boolean;
+  treeError: string;
+  onRetryTree: () => Promise<void>;
 }
 
 const defaultPlaceholder = 'Start writing here...';
@@ -67,6 +77,18 @@ function normalizeInitialContent(content?: AtlasEditorContent) {
     return content;
   }
 
+  const trimmed = content.trim();
+  if (trimmed.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed?.type === 'doc' && Array.isArray(parsed.content)) {
+        return parsed as JSONDocNode;
+      }
+    } catch {
+      // Fall through to HTML/plain-text normalization.
+    }
+  }
+
   return createADFFromHTML(normalizeStringContent(content));
 }
 
@@ -92,35 +114,6 @@ function resolveAppearance(appearance?: AtlasEditorAppearance): any {
   return appearance || defaultAppearance;
 }
 
-// Generate premium mock study guide HTML content
-function getInitialHTMLForPage(pageId: string, title: string): string {
-  if (pageId === '196647') { // Signals
-    return `
-      <h2>Overview</h2>
-      <p>Signals are a system that granularly tracks how and where your state is used, allowing the framework to optimize rendering updates. In Angular 16+, signals provide a new reactive primitive that operates independently of Zone.js change detection.</p>
-      <p><strong>Interview Tip:</strong> Contrast Signals with RxJS. Signals are synchronous and excellent for state/UI binding, while RxJS is asynchronous and perfect for events/data streams.</p>
-      <h2>Core Concepts</h2>
-      <ul>
-        <li>Writable Signals: declared via <code>signal(initialValue)</code> and updated using <code>.set()</code> or <code>.update()</code></li>
-        <li>Computed Signals: read-only values derived from other signals using <code>computed()</code></li>
-        <li>Effects: side-effect listeners that run whenever their dependency signals change, using <code>effect()</code></li>
-      </ul>
-    `;
-  }
-  if (pageId === '1638412') { // Closures
-    return `
-      <h2>Overview</h2>
-      <p>A closure is the combination of a function bundled together with references to its surrounding state (the lexical environment). In other words, a closure gives an inner function access to the outer function's scope even after the outer function has returned.</p>
-      <p><strong>Interview Warning:</strong> Be prepared to discuss memory implications! Closures retain references to their outer scope variables, which prevents them from being garbage-collected.</p>
-    `;
-  }
-  return `
-    <h2>Study Notes: ${title}</h2>
-    <p>This document contains the preparation material and code snippets for the topic ${title}. You can edit this text directly using the Atlaskit Comfluence Editor.</p>
-    <p>Topic focus: Explain the core definition, the primary usecase, and any performance trade-offs.</p>
-  `;
-}
-
 export function Editor({
   activeNav,
   setActiveNav,
@@ -137,18 +130,31 @@ export function Editor({
   progress,
   allPages,
   onUpdatePageTitle,
+  pageContent,
+  pageLoading,
+  pageError,
+  saving,
+  saveError,
+  onSave,
+  treeLoading,
+  treeError,
+  onRetryTree,
 }: EditorProps) {
   const appearance: AtlasEditorAppearance = 'full-width';
   const contentWidth: AtlasEditorContentWidth = 'full-width';
   const placeholder = defaultPlaceholder;
   const mode: AtlasEditorMode = defaultMode;
   const minHeight = defaultMinHeight;
+  const [draftBody, setDraftBody] = useState('');
+
+  useEffect(() => {
+    setDraftBody(pageContent?.body || '');
+  }, [pageContent?.id, pageContent?.body]);
 
   // Select study guide content if selectedPage exists
   const rawContent = useMemo(() => {
-    if (!selectedPage) return '';
-    return getInitialHTMLForPage(selectedPage.id, selectedPage.label);
-  }, [selectedPage]);
+    return pageContent?.body || '';
+  }, [pageContent]);
 
   const resolvedContentWidth = resolveContentWidth(appearance, contentWidth);
   const resolvedAppearance = resolveAppearance(appearance);
@@ -185,10 +191,9 @@ export function Editor({
   });
 
   const handleChange = useCallback((editorView: any) => {
-    // Sync text edits to keep title reactive if title is edited, etc.
     try {
-      const adf = editorView.state.doc.toJSON();
-      // Inspect ADF for title change or content updates
+      const editable = editorView.dom;
+      setDraftBody(editable?.innerHTML || '');
     } catch (e) {
       console.error(e);
     }
@@ -196,9 +201,52 @@ export function Editor({
 
   if (!selectedPage) {
     return (
-      <div style={{ padding: '40px', color: 'var(--text-soft)' }}>
-        <h2>Welcome to the Course</h2>
-        <p>Please select a topic from the sidebar to start editing using the Atlaskit Confluence Editor.</p>
+      <div style={{ flex: 1, display: 'grid', placeItems: 'center', padding: '40px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '440px' }}>
+          {treeLoading ? (
+            <>
+              <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--accent)' }}>progress_activity</span>
+              <h2>Loading resources</h2>
+              <p>Syncing the resource tree from the backend.</p>
+            </>
+          ) : treeError ? (
+            <>
+              <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--bad)' }}>cloud_off</span>
+              <h2>Resources unavailable</h2>
+              <p>{treeError}</p>
+              <button onClick={() => void onRetryTree()} style={{ marginTop: '12px' }}>Retry</button>
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--accent)' }}>menu_book</span>
+              <h2>Interview Resources</h2>
+              <p>Select a topic from the sidebar to load its synced content.</p>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (pageLoading) {
+    return (
+      <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--text-soft)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <span className="material-symbols-outlined" style={{ display: 'block', fontSize: '32px', marginBottom: '8px' }}>progress_activity</span>
+          Loading page…
+        </div>
+      </div>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <div style={{ flex: 1, display: 'grid', placeItems: 'center', padding: '40px', textAlign: 'center' }}>
+        <div>
+          <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--bad)' }}>error</span>
+          <h2>Page could not be loaded</h2>
+          <p style={{ color: 'var(--text-soft)' }}>{pageError}</p>
+        </div>
       </div>
     );
   }
@@ -212,11 +260,27 @@ export function Editor({
           </div>
           <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
             <button
-              onClick={handleComplete}
+              onClick={() => void onSave(draftBody || pageContent?.body || '')}
               style={{
-                background: completedIds.has(selectedPage.id) ? 'var(--good)' : 'var(--accent)',
+                background: saving ? 'var(--text-faint)' : 'var(--accent)',
                 color: 'var(--panel)',
                 border: 'none',
+                borderRadius: '4px',
+                padding: '6px 14px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                cursor: saving ? 'wait' : 'pointer',
+              }}
+              disabled={saving}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              onClick={handleComplete}
+              style={{
+                background: completedIds.has(selectedPage.id) ? 'var(--good)' : 'transparent',
+                color: completedIds.has(selectedPage.id) ? 'var(--panel)' : 'var(--text)',
+                border: '1px solid var(--border-strong)',
                 borderRadius: '4px',
                 padding: '6px 14px',
                 fontSize: '12.5px',
@@ -224,12 +288,18 @@ export function Editor({
                 cursor: 'pointer',
               }}
             >
-              {completedIds.has(selectedPage.id) ? 'Published ✓' : 'Publish'}
+              {completedIds.has(selectedPage.id) ? 'Completed ✓' : 'Mark complete'}
             </button>
           </div>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
+          {saveError && (
+            <div style={{ maxWidth: '760px', margin: '0 auto 12px', color: 'var(--bad)', fontSize: '13px' }}>
+              {saveError}
+            </div>
+          )}
           <ComposableEditor
+            key={selectedPage.id}
             preset={preset}
             appearance={resolvedAppearance}
             onChange={handleChange}
