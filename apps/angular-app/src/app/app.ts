@@ -21,6 +21,7 @@ export class App implements OnInit, OnDestroy {
   private routerSubscription?: Subscription;
   isDark = false;
   private themeRequestListener?: (event: MessageEvent) => void;
+  private themeChangeListener?: (event: Event) => void;
 
   constructor(private router: Router) {}
 
@@ -41,11 +42,19 @@ export class App implements OnInit, OnDestroy {
       }
     };
     window.addEventListener('message', this.themeRequestListener);
+    this.themeChangeListener = (event: Event) => {
+      const customEvent = event as CustomEvent<{ theme?: string }>;
+      if (customEvent.detail?.theme === 'dark' || customEvent.detail?.theme === 'light') {
+        this.isDark = customEvent.detail.theme === 'dark';
+      }
+    };
+    window.addEventListener('app-theme-change', this.themeChangeListener);
   }
 
   ngOnDestroy(): void {
     this.routerSubscription?.unsubscribe();
     if (this.themeRequestListener) window.removeEventListener('message', this.themeRequestListener);
+    if (this.themeChangeListener) window.removeEventListener('app-theme-change', this.themeChangeListener);
   }
 
   toggleTheme(): void {
@@ -57,6 +66,8 @@ export class App implements OnInit, OnDestroy {
     const theme = dark ? 'dark' : 'light';
     localStorage.setItem('app-theme', theme);
     document.documentElement.classList.toggle('dark', dark);
+    document.documentElement.dataset['theme'] = theme;
+    document.documentElement.style.colorScheme = theme;
     document.querySelectorAll<HTMLIFrameElement>('iframe').forEach(iframe => {
       iframe.contentWindow?.postMessage({ type: 'THEME_CHANGE', theme }, '*');
     });

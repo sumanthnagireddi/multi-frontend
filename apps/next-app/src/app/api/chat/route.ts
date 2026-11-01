@@ -1,26 +1,33 @@
-import { streamText } from 'ai';
-import { google } from '@ai-sdk/google';
+import { agentService } from '../../ai/services';
 
-// Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
-  const lastMessage = messages[messages.length - 1]?.content || 'something';
+  const {
+    messages,
+    model = 'gemini-2.5-flash',
+    mode = 'chat',
+    webSearch = false,
+    deepReasoning = false,
+    attachments = [],
+  } = await req.json();
 
-  // Create a dummy stream
+  const lastMessage = messages[messages.length - 1]?.content || 'your request';
+  const response = await agentService.createAgentResponse({
+    message: lastMessage,
+    model,
+    mode,
+    webSearch,
+    deepReasoning,
+    attachments,
+  });
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      const dummyResponse = `This is a dummy response! You just said: "${lastMessage}".\n\n(Real API calls will be added later.)`;
-      
-      // Simulate streaming word by word
-      const words = dummyResponse.split(' ');
-      for (let i = 0; i < words.length; i++) {
-        // AI SDK DataStream format uses '0:"text"\n'
-        const chunk = words[i] + (i < words.length - 1 ? ' ' : '');
-        controller.enqueue(encoder.encode(`0:${JSON.stringify(chunk)}\n`));
-        await new Promise(resolve => setTimeout(resolve, 50)); // 50ms delay per word
+      for (const word of response.split(/(\s+)/)) {
+        controller.enqueue(encoder.encode(`0:${JSON.stringify(word)}\n`));
+        await new Promise(resolve => setTimeout(resolve, 28));
       }
       controller.close();
     },

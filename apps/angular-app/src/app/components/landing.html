@@ -14,6 +14,14 @@
       <button type="button" (click)="openLink('linkedin')">LinkedIn</button>
     </nav>
     <div class="home-actions">
+      <button
+        type="button"
+        class="icon-action"
+        [attr.aria-label]="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+        [attr.title]="isDark ? 'Light theme' : 'Dark theme'"
+        (click)="toggleTheme()">
+        {{ isDark ? '☀' : '☾' }}
+      </button>
       <a class="resume-button" href="assets/Resume.pdf" download>Download CV</a>
       <button
         type="button"

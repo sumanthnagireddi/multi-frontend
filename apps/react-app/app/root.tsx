@@ -28,6 +28,10 @@ function applyTheme(theme: string) {
   } else {
     document.documentElement.classList.remove('dark');
   }
+  document.documentElement.dataset.theme = mode;
+  document.documentElement.style.colorScheme = mode;
+  localStorage.setItem('app-theme', mode);
+  document.documentElement.dispatchEvent(new CustomEvent('themechange', { detail: { theme: mode } }));
   // Atlaskit: update data-theme & data-color-mode attrs on <html>
   applyAtlaskitTheme(mode);
 }
@@ -49,6 +53,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
+    const saved = localStorage.getItem('app-theme');
+    if (saved) {
+      applyTheme(saved);
+      setIsDark(saved === 'dark');
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      applyTheme('dark');
+      setIsDark(true);
+    }
     // Signal readiness to Angular parent → parent responds with THEME_CHANGE
     window.parent?.postMessage({ type: 'THEME_READY' }, '*');
 

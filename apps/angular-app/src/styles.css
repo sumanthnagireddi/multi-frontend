@@ -47,21 +47,21 @@ html.dark body {
   color: #e2e8f0;
 }
 
-/* Header dark mode */
-html.dark header {
-  background-color: #0f172a !important;
-  border-bottom-color: #1e293b !important;
+html.dark .dashboard-shell,
+html.dark .dashboard-content,
+html.dark .clerk-home {
+  background-color: var(--canvas);
+  color: var(--ink);
 }
 
-html.dark header a,
-html.dark header p,
-html.dark header span:not(.material-symbols-outlined) {
-  color: #e2e8f0 !important;
+html.dark button,
+html.dark input,
+html.dark select,
+html.dark textarea {
+  color-scheme: dark;
 }
 
-html.dark header nav {
-  background-color: #0f172a;
-}
+/* Shared navigation surfaces use component-level Clerk variables. */
 
 /* Mobile menu dark mode */
 html.dark .mobile-menu-panel {

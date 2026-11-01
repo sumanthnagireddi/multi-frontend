@@ -11,6 +11,7 @@ import { RouterLink } from '@angular/router';
 })
 export class LandingComponent implements OnInit, OnDestroy {
   mobileMenuOpen = false;
+  isDark = false;
   roles = ['Angular', 'React','Node JS', 'Nest JS', 'React', 'AI Native']
   roleIndex = signal(0);
 
@@ -28,14 +29,31 @@ export class LandingComponent implements OnInit, OnDestroy {
   private timerId: any;
   private revealObserver?: IntersectionObserver;
   private scrollListener?: EventListener;
-  private lastScrollY = 0;
 
   // Typewriter initializer hook
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('app-theme');
+      this.isDark = saved === 'dark'
+        || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      this.applyTheme(this.isDark);
       this.runTypewriter();
       requestAnimationFrame(() => this.initScrollEffects());
     }
+  }
+
+  toggleTheme(): void {
+    this.isDark = !this.isDark;
+    this.applyTheme(this.isDark);
+  }
+
+  private applyTheme(dark: boolean): void {
+    const theme = dark ? 'dark' : 'light';
+    localStorage.setItem('app-theme', theme);
+    document.documentElement.classList.toggle('dark', dark);
+    document.documentElement.dataset['theme'] = theme;
+    document.documentElement.style.colorScheme = theme;
+    window.dispatchEvent(new CustomEvent('app-theme-change', { detail: { theme } }));
   }
 
   ngOnDestroy(): void {
@@ -52,19 +70,17 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.revealObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         const target = entry.target as HTMLElement;
-        const currentScrollY = window.scrollY;
-        const scrollingDown = currentScrollY >= this.lastScrollY;
+        const wasVisible = target.dataset['revealVisible'] === 'true';
 
-        if (entry.isIntersecting) {
-          target.classList.remove('is-visible', 'reveal-enter-up', 'reveal-enter-down');
-          void target.offsetWidth;
-          target.classList.add('is-visible', scrollingDown ? 'reveal-enter-down' : 'reveal-enter-up');
-        } else {
-          target.classList.remove('is-visible', 'reveal-enter-up', 'reveal-enter-down');
+        if (entry.isIntersecting && !wasVisible) {
+          target.dataset['revealVisible'] = 'true';
+          target.classList.add('is-visible');
+        } else if (!entry.isIntersecting && wasVisible) {
+          target.dataset['revealVisible'] = 'false';
+          target.classList.remove('is-visible');
         }
-        this.lastScrollY = currentScrollY;
       });
-    }, { threshold: [0, 0.08, 0.12, 0.35], rootMargin: '0px 0px -4% 0px' });
+    }, { threshold: 0.08, rootMargin: '0px 0px 0px 0px' });
     elements.forEach((element, index) => {
       element.classList.add('reveal-ready');
       element.setAttribute('style', `${element.getAttribute('style') || ''};--reveal-delay:${Math.min(index % 4, 3) * 70}ms`);

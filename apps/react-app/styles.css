@@ -8,7 +8,21 @@
   --canvas: #f5efe6;
   --canvas-strong: #fffaf5;
   --ink: #102a43;
+  --muted: #64748b;
+  --accent: #6c47ff;
+  --accent-soft: #f0edff;
+  --border: #e4e4e7;
   --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html.dark {
+  --canvas: #111827;
+  --canvas-strong: #172033;
+  --ink: #f4f4f5;
+  --muted: #94a3b8;
+  --accent: #a78bfa;
+  --accent-soft: rgba(139, 92, 246, 0.14);
+  --border: #334155;
 }
 
 @layer base {
@@ -32,4 +46,19 @@
       linear-gradient(180deg, var(--canvas-strong), var(--canvas));
     color: var(--ink);
   }
+
+  html.dark body {
+    background: radial-gradient(circle at top left, rgba(124,58,237,.12), transparent 30%), var(--canvas);
+    color: var(--ink);
+  }
+}
+
+html.dark .resources-theme-root {
+  color-scheme: dark;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  color-scheme: dark;
 }

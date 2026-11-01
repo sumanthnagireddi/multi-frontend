@@ -18,6 +18,10 @@ function applyTheme(theme: string) {
   } else {
     document.documentElement.classList.remove('dark');
   }
+  document.documentElement.dataset.theme = mode;
+  document.documentElement.style.colorScheme = mode;
+  localStorage.setItem('app-theme', mode);
+  window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: mode } }));
   applyAtlaskitTheme(mode);
 }
 
