@@ -767,6 +767,10 @@ html.dark a {
   box-shadow: 0 7px 24px rgba(24, 24, 27, 0.05);
 }
 
+.finance-clerk-toolbar {
+  width: min(1120px, 100%);
+}
+
 .finance-clerk-tabs > div {
   display: none;
 }

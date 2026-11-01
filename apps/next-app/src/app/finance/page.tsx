@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
 import {
   financeService,
   CardInfo,
@@ -512,71 +511,33 @@ export default function FinanceDashboard() {
 
   return (
     <div className="finance-clerk-page min-h-screen bg-[color:var(--canvas)] text-[color:var(--ink)] font-sans antialiased transition-colors duration-300">
-      
-      {/* Editorial Claude Header */}
-      <header className="finance-clerk-header">
-        <div className="mx-auto max-w-7xl px-6 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <span className="text-[10px] tracking-[0.3em] font-semibold text-[color:var(--claude-accent)] uppercase block mb-1">
-              Private Ledger
-            </span>
-            <h1 className="text-3xl md:text-4xl font-serif font-medium tracking-tight text-[color:var(--claude-ink)]">
-              Finance
-            </h1>
-            <p className="text-xs md:text-sm text-[color:var(--claude-ink-sub)] mt-1 max-w-xl">
-              Dashboard for personal monthly targets, construction projects, credit cards, and debt ledgers.
-            </p>
+      <div className="finance-clerk-toolbar mx-auto max-w-7xl px-5 md:px-8 pt-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 rounded-xl border border-[color:var(--claude-border)] bg-[color:var(--claude-bg-strong)] px-3 py-2">
+            <label htmlFor="globalMonth" className="text-xs font-medium text-[color:var(--claude-ink-sub)]">Period</label>
+            <select
+              id="globalMonth"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="bg-transparent text-xs font-semibold text-[color:var(--claude-ink)] focus:outline-none border-none cursor-pointer"
+            >
+              {monthOptions.map(opt => (
+                <option key={opt.val} value={opt.val}>{opt.label}</option>
+              ))}
+            </select>
           </div>
-          
-          {/* Month Selector & Manage Button */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] px-3 py-2 rounded-xl">
-              <label htmlFor="globalMonth" className="text-xs font-medium text-[color:var(--claude-ink-sub)]">Period:</label>
-              <select
-                id="globalMonth"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent text-xs font-semibold focus:outline-none border-none cursor-pointer"
-              >
-                {monthOptions.map(opt => (
-                  <option key={opt.val} value={opt.val}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-            
-            <button
-              onClick={() => setShowManageTabsModal(true)}
-              className="p-2.5 bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)] hover:bg-[color:var(--claude-border)]/35 transition flex items-center shadow-xs"
-              title="Manage Dynamic Projects"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            </button>
-
-            <Link
-              href="/analytics"
-              className="p-2.5 bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)] transition flex items-center shadow-xs"
-              title="Visitor analytics"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 3v18h18"/><path d="M7 16l4-5 4 3 5-7"/></svg>
-            </Link>
-
-            {/* Logout */}
-            <button
-              onClick={() => { logout(); }}
-              className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition flex items-center shadow-xs"
-              title="Sign out"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowManageTabsModal(true)}
+            className="h-10 px-3 rounded-xl border border-[color:var(--claude-border)] bg-[color:var(--claude-bg-strong)] text-xs font-semibold text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)] transition"
+          >
+            Manage tabs
+          </button>
         </div>
+      </div>
 
-        {/* Tab Controls */}
-        <div className="finance-clerk-tabs w-full mx-auto mt-4 flex gap-1 overflow-x-auto scrollbar-none flex-nowrap px-6 md:px-12">
-          <div className="hidden lg:block px-3 pb-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--claude-accent)]">Private ledger</p>
-            <h2 className="mt-1 text-lg font-semibold">Finance</h2>
-          </div>
+      {/* Tab Controls */}
+      <nav className="finance-clerk-tabs mx-auto flex gap-1 overflow-x-auto scrollbar-none flex-nowrap px-2" aria-label="Finance sections">
           {[
             { id: 'overview', label: 'Overview', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg> },
             { id: 'personal', label: 'Personal Expenses', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> },
@@ -586,7 +547,7 @@ export default function FinanceDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 lg:w-full lg:justify-start lg:rounded-xl lg:border-b-0 lg:-mb-0 lg:px-3 ${
+              className={`px-3.5 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 rounded-xl border-b-0 -mb-0 lg:px-3 ${
                 activeTab === tab.id
                   ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold lg:border-transparent lg:bg-[color:var(--claude-accent-light)]'
                   : 'border-transparent text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)]'
@@ -602,7 +563,7 @@ export default function FinanceDashboard() {
             <button
               key={proj.key}
               onClick={() => setActiveTab(`project-${proj.key}`)}
-              className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 lg:w-full lg:justify-start lg:rounded-xl lg:border-b-0 lg:-mb-0 lg:px-3 ${
+              className={`px-3.5 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 rounded-xl border-b-0 -mb-0 lg:px-3 ${
                 activeTab === `project-${proj.key}`
                   ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold lg:border-transparent lg:bg-[color:var(--claude-accent-light)]'
                   : 'border-transparent text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)]'
@@ -616,7 +577,7 @@ export default function FinanceDashboard() {
           {/* Debts tab at the end */}
           <button
             onClick={() => setActiveTab('debts')}
-            className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 lg:w-full lg:justify-start lg:rounded-xl lg:border-b-0 lg:-mb-0 lg:px-3 ${
+            className={`px-3.5 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 -mb-px transition duration-200 shrink-0 rounded-xl border-b-0 -mb-0 lg:px-3 ${
               activeTab === 'debts'
                 ? 'border-[color:var(--claude-accent)] text-[color:var(--claude-accent)] font-bold lg:border-transparent lg:bg-[color:var(--claude-accent-light)]'
                 : 'border-transparent text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)]'
@@ -625,8 +586,7 @@ export default function FinanceDashboard() {
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             Debts Ledger
           </button>
-        </div>
-      </header>
+      </nav>
 
       {/* Main dashboard content */}
       <main className="finance-clerk-main mx-auto max-w-7xl px-5 md:px-8 mt-7 pb-16">
