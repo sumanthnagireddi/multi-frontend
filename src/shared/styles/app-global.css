@@ -859,6 +859,7 @@ html.dark a {
 
 .finance-clerk-page button,
 .finance-clerk-page a[role="button"] {
+  cursor: pointer;
   transition:
     color 180ms ease,
     background-color 180ms ease,

@@ -145,7 +145,7 @@ export default function ConstructionTab({
               Total Project Budget: <span className="font-semibold text-[color:var(--claude-ink)]">₹{projectBudget.toLocaleString('en-IN')}</span>
               <button
                 onClick={() => { setIsEditingBudget(true); setTempBudgetVal(projectBudget.toString()); }}
-                className="text-[10px] text-[color:var(--claude-accent)] hover:underline flex items-center gap-0.5 ml-1"
+                className="text-[10px] leading-none min-h-7 px-1.5 text-[color:var(--claude-accent)] hover:bg-[color:var(--claude-bg-strong)] rounded-md flex items-center gap-1 ml-1 cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 Edit
@@ -157,7 +157,7 @@ export default function ConstructionTab({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setShowAddConstForm(!showAddConstForm)}
-            className="px-4 py-2 bg-[color:var(--claude-accent)] hover:bg-[color:var(--claude-accent)]/85 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
+            className="min-h-10 px-4 py-2 bg-[color:var(--claude-accent)] hover:bg-[color:var(--claude-accent)]/85 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 cursor-pointer"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Log Project Expense
@@ -494,10 +494,10 @@ export default function ConstructionTab({
                       <td className="px-6 py-4">
                         <button
                           onClick={() => handleToggleConstStatus(exp.id, exp.status)}
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition ${
+                          className={`inline-flex items-center min-h-7 px-2.5 py-1 rounded-full text-[9px] leading-none font-medium transition cursor-pointer ${
                             exp.status && exp.status.toLowerCase() === 'paid'
-                              ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900'
-                              : 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900'
+                              ? 'bg-emerald-300 text-white dark:bg-emerald-700 dark:text-white'
+                              : 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400'
                           }`}
                         >
                           {exp.status && exp.status.toLowerCase() === 'paid' ? 'Paid' : 'Pending'}
@@ -561,10 +561,10 @@ export default function ConstructionTab({
                     <div className="flex gap-2 items-center">
                       <button
                         onClick={() => handleToggleConstStatus(exp.id, exp.status)}
-                        className={`px-2 py-0.5 rounded-full text-[9px] font-bold border transition ${
+                        className={`inline-flex items-center min-h-7 px-2.5 py-1 rounded-full text-[9px] leading-none font-medium transition cursor-pointer ${
                           exp.status && exp.status.toLowerCase() === 'paid'
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900'
-                            : 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900'
+                            ? 'bg-emerald-600 text-white dark:bg-emerald-700 dark:text-white'
+                            : 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400'
                         }`}
                       >
                         {exp.status && exp.status.toLowerCase() === 'paid' ? 'Paid' : 'Pending'}
