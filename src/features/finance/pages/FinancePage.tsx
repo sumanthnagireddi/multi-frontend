@@ -528,18 +528,6 @@ export default function FinanceDashboard() {
     return list;
   }, [constructionExpenses, constructionBudget]);
 
-  // Register PWA Service Worker on Mount
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
-        navigator.serviceWorker.register('/sw.js').then(
-          (reg) => console.log('PWA ServiceWorker registered Scope: ', reg.scope),
-          (err) => console.log('PWA ServiceWorker registration failed: ', err)
-        );
-      }
-    }
-  }, []);
-
   // Month options for dropdown selection
   const monthOptions = useMemo(() => {
     const options = [];
