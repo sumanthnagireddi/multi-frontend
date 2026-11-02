@@ -51,6 +51,9 @@ export default function DebtsTab({
 }: DebtsTabProps) {
   // Toggle expanded state
   const [expandedDebtId, setExpandedDebtId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'Partial' | 'Paid'>('All');
+  const [busyDebtId, setBusyDebtId] = useState<string | null>(null);
 
   // New partial payment record fields
   const [showAddPaymentId, setShowAddPaymentId] = useState<string | null>(null);
@@ -82,6 +85,15 @@ export default function DebtsTab({
     return 4;
   };
 
+  const matchesFilters = (debt: DebtEntry) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch = !query ||
+      debt.contactName.toLowerCase().includes(query) ||
+      debt.notes.toLowerCase().includes(query);
+    const matchesStatus = statusFilter === 'All' || debt.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  };
+
   // --- Handlers ---
   const handleOpenEditMain = (debt: DebtEntry) => {
     setEditingDebtId(debt.id);
@@ -95,7 +107,7 @@ export default function DebtsTab({
 
   const handleSaveEditMain = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editContactName || !editAmount || !editDueDate || !editingDebtId) return;
+    if (!editContactName || !editAmount || !editingDebtId) return;
     try {
       await financeService.editDebt(editingDebtId, {
         contactName: editContactName,
@@ -172,13 +184,14 @@ export default function DebtsTab({
       
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-serif font-medium">Debts & Receivables Ledger</h2>
-          <p className="text-xs text-[color:var(--claude-ink-sub)]">Track money coming in (Receivables) and outgoing payments due (Payables)</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--claude-accent)]">Money ledger</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[color:var(--claude-ink)]">Debts & receivables</h2>
+          <p className="mt-1 text-xs text-[color:var(--claude-ink-sub)]">Everything you owe and all money owed to you.</p>
         </div>
 
         <button
           onClick={() => setShowAddDebtForm(!showAddDebtForm)}
-          className="px-4 py-2 bg-[color:var(--claude-accent)] hover:bg-[color:var(--claude-accent)]/85 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
+          className="inline-flex h-10 items-center gap-2 rounded-xl bg-[color:var(--claude-accent)] px-4 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Ledger Item
@@ -239,10 +252,9 @@ export default function DebtsTab({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-semibold uppercase text-[color:var(--claude-ink-sub)] block mb-1">Target Due Date *</label>
+                  <label className="text-[10px] font-semibold uppercase text-[color:var(--claude-ink-sub)] block mb-1">Target Due Date</label>
                   <input
                     type="date"
-                    required
                     value={dDueDate}
                     onChange={(e) => setDDueDate(e.target.value)}
                     className="w-full bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--claude-accent)]"
@@ -264,14 +276,14 @@ export default function DebtsTab({
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-[color:var(--claude-accent)] text-white text-xs font-semibold rounded-xl hover:bg-[color:var(--claude-accent)]/90 transition"
+                  className="flex-1 cursor-pointer rounded-xl bg-[color:var(--claude-accent)] py-2.5 text-xs font-medium text-white transition hover:brightness-95 active:scale-[0.99]"
                 >
                   Add Record
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddDebtForm(false)}
-                  className="flex-1 py-2.5 bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink-sub)] text-xs font-semibold rounded-xl border border-[color:var(--claude-border)] hover:bg-[color:var(--claude-bg-strong)]/80 transition"
+                  className="flex-1 cursor-pointer rounded-xl bg-[color:var(--claude-bg-strong)] py-2.5 text-xs font-medium text-[color:var(--claude-ink-sub)] transition hover:brightness-95"
                 >
                   Cancel
                 </button>
@@ -333,10 +345,9 @@ export default function DebtsTab({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-semibold uppercase text-[color:var(--claude-ink-sub)] block mb-1">Due Date *</label>
+                  <label className="text-[10px] font-semibold uppercase text-[color:var(--claude-ink-sub)] block mb-1">Due Date</label>
                   <input
                     type="date"
-                    required
                     value={editDueDate}
                     onChange={e => setEditDueDate(e.target.value)}
                     className="w-full bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--claude-accent)]"
@@ -357,14 +368,14 @@ export default function DebtsTab({
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-[color:var(--claude-accent)] text-white text-xs font-semibold rounded-xl hover:bg-[color:var(--claude-accent)]/90 transition"
+                  className="flex-1 cursor-pointer rounded-xl bg-[color:var(--claude-accent)] py-2.5 text-xs font-medium text-white transition hover:brightness-95 active:scale-[0.99]"
                 >
                   Save Specs
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowEditModal(false); setEditingDebtId(null); }}
-                  className="flex-1 py-2.5 bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink-sub)] text-xs font-semibold rounded-xl border border-[color:var(--claude-border)] hover:bg-[color:var(--claude-bg-strong)]/80 transition"
+                  className="flex-1 cursor-pointer rounded-xl bg-[color:var(--claude-bg-strong)] py-2.5 text-xs font-medium text-[color:var(--claude-ink-sub)] transition hover:brightness-95"
                 >
                   Cancel
                 </button>
@@ -375,25 +386,58 @@ export default function DebtsTab({
       )}
 
       {/* Summary Metrics */}
-      <div className="grid gap-6 sm:grid-cols-3">
-        <div className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] p-6 rounded-2xl shadow-sm text-center">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--claude-ink-sub)]">Total Owed To Me</span>
-          <h3 className="text-3xl font-sans font-semibold tracking-tight mt-2 text-emerald-600">₹{totalReceivables.toLocaleString('en-IN')}</h3>
-          <p className="text-[10px] text-[color:var(--claude-ink-sub)] mt-1">Pending incoming assets</p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/70 p-5 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">To receive</span>
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          </div>
+          <h3 className="mt-3 text-2xl font-semibold tracking-tight text-emerald-700 dark:text-emerald-400">₹{totalReceivables.toLocaleString('en-IN')}</h3>
+          <p className="mt-1 text-[11px] text-emerald-700/70 dark:text-emerald-400/70">{debts.filter(d => d.type === 'Receivable' && d.status !== 'Paid').length} active receivables</p>
         </div>
 
-        <div className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] p-6 rounded-2xl shadow-sm text-center">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--claude-ink-sub)]">Total I Need To Pay</span>
-          <h3 className="text-3xl font-sans font-semibold tracking-tight mt-2 text-rose-600">₹{totalPayables.toLocaleString('en-IN')}</h3>
-          <p className="text-[10px] text-[color:var(--claude-ink-sub)] mt-1">Pending payables obligations</p>
+        <div className="rounded-2xl border border-rose-200/60 bg-rose-50/70 p-5 dark:border-rose-900/40 dark:bg-rose-950/20">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">To pay</span>
+            <span className="h-2 w-2 rounded-full bg-rose-500" />
+          </div>
+          <h3 className="mt-3 text-2xl font-semibold tracking-tight text-rose-700 dark:text-rose-400">₹{totalPayables.toLocaleString('en-IN')}</h3>
+          <p className="mt-1 text-[11px] text-rose-700/70 dark:text-rose-400/70">{debts.filter(d => d.type === 'Payable' && d.status !== 'Paid').length} active payables</p>
         </div>
 
-        <div className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] p-6 rounded-2xl shadow-sm text-center">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--claude-ink-sub)]">Ledger Net Worth</span>
-          <h3 className={`text-3xl font-sans font-semibold tracking-tight mt-2 ${netDebtValue >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+        <div className="rounded-2xl border border-[color:var(--claude-border)] bg-[color:var(--claude-card)] p-5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--claude-ink-sub)]">Net position</span>
+          <h3 className={`mt-3 text-2xl font-semibold tracking-tight ${netDebtValue >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
             {netDebtValue >= 0 ? '+' : '-'}₹{Math.abs(netDebtValue).toLocaleString('en-IN')}
           </h3>
-          <p className="text-[10px] text-[color:var(--claude-ink-sub)] mt-1">{netDebtValue >= 0 ? 'Surplus balance' : 'Deficit liability'}</p>
+          <p className="mt-1 text-[11px] text-[color:var(--claude-ink-sub)]">{netDebtValue >= 0 ? 'Overall surplus' : 'Overall liability'}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--claude-border)] bg-[color:var(--claude-card)] p-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--claude-ink-sub)]" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search contact or notes"
+            className="h-10 w-full rounded-xl border-0 bg-[color:var(--claude-bg-strong)]/60 pl-9 pr-3 text-xs text-[color:var(--claude-ink)] outline-none transition focus:bg-[color:var(--claude-bg-strong)] focus:ring-2 focus:ring-[color:var(--claude-accent)]/20"
+          />
+        </div>
+        <div className="flex gap-1 overflow-x-auto rounded-xl bg-[color:var(--claude-bg-strong)]/60 p-1">
+          {(['All', 'Pending', 'Partial', 'Paid'] as const).map(status => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`whitespace-nowrap rounded-lg px-3 py-2 text-[10px] font-semibold transition cursor-pointer ${
+                statusFilter === status
+                  ? 'bg-[color:var(--claude-card)] text-[color:var(--claude-ink)] shadow-sm'
+                  : 'text-[color:var(--claude-ink-sub)] hover:text-[color:var(--claude-ink)]'
+              }`}
+            >
+              {status}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -401,41 +445,57 @@ export default function DebtsTab({
       <div className="grid gap-6 md:grid-cols-2">
         
         {/* Receivables Ledger (Coming to me) */}
-        <div className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-4 bg-emerald-50/20 border-b border-[color:var(--claude-border)]">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[color:var(--claude-ink)]">
-              Receivables (Coming to me)
-            </h3>
+        <div className="overflow-hidden rounded-2xl border border-[color:var(--claude-border)] bg-[color:var(--claude-card)]">
+          <div className="flex items-center justify-between border-b border-[color:var(--claude-border)] px-5 py-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Receivables</p>
+              <h3 className="mt-0.5 text-sm font-semibold text-[color:var(--claude-ink)]">Money coming to you</h3>
+            </div>
+            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+              {debts.filter(d => d.type === 'Receivable').length}
+            </span>
           </div>
           
           <div className="divide-y divide-[color:var(--claude-border)]/50">
-            {debts.filter(d => d.type === 'Receivable').length > 0 ? (
+            {debts.filter(d => d.type === 'Receivable' && matchesFilters(d)).length > 0 ? (
               debts
                 .filter(d => d.type === 'Receivable')
+                .filter(matchesFilters)
                 .sort((a, b) => getStatusPriority(a.status) - getStatusPriority(b.status))
                 .map(debt => renderDebtItem(debt))
             ) : (
-              <p className="text-xs text-[color:var(--claude-ink-sub)] text-center py-8">No receivables registered.</p>
+              <div className="px-5 py-10 text-center">
+                <p className="text-xs font-medium text-[color:var(--claude-ink-sub)]">No matching receivables</p>
+                <p className="mt-1 text-[10px] text-[color:var(--claude-ink-sub)]">Try changing the search or status.</p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Payables Ledger (I need to give) */}
-        <div className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-4 bg-rose-50/20 border-b border-[color:var(--claude-border)]">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[color:var(--claude-ink)]">
-              Payables (I need to give)
-            </h3>
+        <div className="overflow-hidden rounded-2xl border border-[color:var(--claude-border)] bg-[color:var(--claude-card)]">
+          <div className="flex items-center justify-between border-b border-[color:var(--claude-border)] px-5 py-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Payables</p>
+              <h3 className="mt-0.5 text-sm font-semibold text-[color:var(--claude-ink)]">Money you need to pay</h3>
+            </div>
+            <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold text-rose-700 dark:bg-rose-950/40 dark:text-rose-400">
+              {debts.filter(d => d.type === 'Payable').length}
+            </span>
           </div>
 
           <div className="divide-y divide-[color:var(--claude-border)]/50">
-            {debts.filter(d => d.type === 'Payable').length > 0 ? (
+            {debts.filter(d => d.type === 'Payable' && matchesFilters(d)).length > 0 ? (
               debts
                 .filter(d => d.type === 'Payable')
+                .filter(matchesFilters)
                 .sort((a, b) => getStatusPriority(a.status) - getStatusPriority(b.status))
                 .map(debt => renderDebtItem(debt))
             ) : (
-              <p className="text-xs text-[color:var(--claude-ink-sub)] text-center py-8">No payables registered.</p>
+              <div className="px-5 py-10 text-center">
+                <p className="text-xs font-medium text-[color:var(--claude-ink-sub)]">No matching payables</p>
+                <p className="mt-1 text-[10px] text-[color:var(--claude-ink-sub)]">Try changing the search or status.</p>
+              </div>
             )}
           </div>
         </div>
@@ -451,36 +511,34 @@ export default function DebtsTab({
     const progressPercent = Math.min(Math.round(((debt.paidAmount || 0) / debt.amount) * 100), 100);
 
     return (
-      <div key={debt.id} className="transition border-b border-[color:var(--claude-border)]/20 last:border-0">
+      <div key={debt.id} className="border-b border-[color:var(--claude-border)]/40 transition-colors last:border-0">
         
         {/* Header summary line: Stack on mobile, row on larger screens */}
         <div 
           onClick={() => {
             setExpandedDebtId(isExpanded ? null : debt.id);
           }}
-          className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-[color:var(--claude-bg-strong)]/30 transition ${
-            debt.status === 'Paid' ? 'opacity-65' : ''
-          }`}
+          className="flex cursor-pointer flex-col gap-3 p-5 transition-all duration-200 hover:bg-[color:var(--claude-bg-strong)]/40 sm:flex-row sm:items-center sm:justify-between"
         >
           {/* Top/Left Section */}
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1.5">
             <div className="flex items-center flex-wrap gap-2">
               <p className="font-semibold text-sm text-[color:var(--claude-ink)]">{debt.contactName}</p>
-              <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
+              <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${
                 debt.status === 'Paid'
-                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
                   : debt.status === 'Partial'
-                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400'
-                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400'
+                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
               }`}>
                 {debt.status}
               </span>
             </div>
             {debt.notes && (
-              <p className="text-xs text-[color:var(--claude-ink-sub)] line-clamp-2 max-w-md">{debt.notes}</p>
+              <p className="line-clamp-1 max-w-md text-xs text-[color:var(--claude-ink-sub)]">{debt.notes}</p>
             )}
             <p className="text-[10px] text-[color:var(--claude-ink-sub)] font-sans">
-              Due Date: <span className="font-semibold">{debt.dueDate}</span>
+              {debt.dueDate ? <>Due <span className="font-semibold text-[color:var(--claude-ink)]">{debt.dueDate}</span></> : <span>No due date</span>}
               {debt.paidAmount > 0 && debt.status !== 'Paid' && (
                 <span className="ml-2 font-medium text-[color:var(--claude-accent)]">
                   Paid ₹{(debt.paidAmount || 0).toLocaleString('en-IN')} ({progressPercent}%)
@@ -509,15 +567,20 @@ export default function DebtsTab({
             
             <div className="flex gap-1.5">
               <button
-                onClick={() => handleToggleDebtStatus(debt.id, debt.status === 'Paid' ? 'Paid' : 'Pending')}
-                className="px-2.5 py-1 rounded bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] text-xs font-semibold hover:bg-[color:var(--claude-bg-strong)]/80 transition"
+                onClick={async () => {
+                  setBusyDebtId(debt.id);
+                  await handleToggleDebtStatus(debt.id, debt.status === 'Paid' ? 'Paid' : 'Pending');
+                  setBusyDebtId(null);
+                }}
+                disabled={busyDebtId === debt.id}
+                className="cursor-pointer rounded px-2.5 py-1 text-xs font-medium bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink)] transition hover:brightness-95 disabled:cursor-wait disabled:opacity-60 dark:hover:brightness-125"
                 title={debt.status === 'Paid' ? 'Reopen ledger' : 'Mark settled'}
               >
-                {debt.status === 'Paid' ? 'Reopen' : 'Settle'}
+                {busyDebtId === debt.id ? 'Saving...' : debt.status === 'Paid' ? 'Reopen' : 'Settle'}
               </button>
               <button
                 onClick={() => handleDeleteDebt(debt.id)}
-                className="px-2.5 py-1 text-rose-600 rounded bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] text-xs hover:bg-rose-50 dark:hover:bg-rose-950/20 transition"
+                className="cursor-pointer rounded px-2.5 py-1 text-xs font-medium text-rose-700 bg-rose-50 transition hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/60"
                 title="Delete entry"
               >
                 Delete
@@ -559,7 +622,7 @@ export default function DebtsTab({
                       setPAmount('');
                       setPNotes('');
                     }}
-                    className="text-[10px] text-[color:var(--claude-accent)] font-semibold hover:underline flex items-center gap-0.5"
+                    className="cursor-pointer rounded px-2 py-1 text-xs font-medium text-[color:var(--claude-accent)] transition hover:bg-[color:var(--claude-bg-strong)]"
                   >
                     + Record Sub-Payment
                   </button>
@@ -602,8 +665,8 @@ export default function DebtsTab({
                       />
                     </div>
                     <div className="flex gap-2 justify-end">
-                      <button type="submit" className="px-2.5 py-1 text-[10px] bg-[color:var(--claude-accent)] text-white font-semibold rounded hover:bg-[color:var(--claude-accent)]/90 transition">Save Payment</button>
-                      <button type="button" onClick={() => setShowAddPaymentId(null)} className="px-2.5 py-1 text-[10px] bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink-sub)] font-semibold rounded hover:bg-slate-200 transition">Cancel</button>
+                      <button type="submit" className="cursor-pointer rounded px-2.5 py-1.5 text-xs font-medium bg-[color:var(--claude-accent)] text-white transition hover:brightness-95">Save Payment</button>
+                      <button type="button" onClick={() => setShowAddPaymentId(null)} className="cursor-pointer rounded px-2.5 py-1.5 text-xs font-medium bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink-sub)] transition hover:brightness-95">Cancel</button>
                     </div>
                   </form>
                 )}
@@ -655,8 +718,8 @@ export default function DebtsTab({
                               />
                             </div>
                             <div className="flex gap-2 justify-end">
-                              <button type="submit" className="px-2.5 py-1 text-[10px] bg-[color:var(--claude-accent)] text-white font-semibold rounded hover:bg-[color:var(--claude-accent)]/90 transition">Save</button>
-                              <button type="button" onClick={() => setEditingPaymentId(null)} className="px-2.5 py-1 text-[10px] bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink-sub)] font-semibold rounded hover:bg-slate-200 transition">Cancel</button>
+                              <button type="submit" className="cursor-pointer rounded px-2.5 py-1.5 text-xs font-medium bg-[color:var(--claude-accent)] text-white transition hover:brightness-95">Save</button>
+                              <button type="button" onClick={() => setEditingPaymentId(null)} className="cursor-pointer rounded px-2.5 py-1.5 text-xs font-medium bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink-sub)] transition hover:brightness-95">Cancel</button>
                             </div>
                           </form>
                         );
@@ -675,13 +738,13 @@ export default function DebtsTab({
                           <div className="flex gap-1.5">
                             <button
                               onClick={() => handleOpenEditPayment(payment)}
-                              className="text-[10px] px-2.5 py-1 rounded bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] text-[color:var(--claude-ink)] hover:bg-slate-200 transition"
+                              className="cursor-pointer rounded px-2.5 py-1 text-xs font-medium bg-[color:var(--claude-bg-strong)] text-[color:var(--claude-ink)] transition hover:brightness-95"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDeletePartialPayment(debt.id, payment.id)}
-                              className="text-[10px] px-2.5 py-1 rounded bg-[color:var(--claude-bg-strong)] border border-rose-200 text-rose-600 hover:bg-rose-50 transition"
+                              className="cursor-pointer rounded px-2.5 py-1 text-xs font-medium bg-rose-50 text-rose-700 transition hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400"
                             >
                               Remove
                             </button>
@@ -706,7 +769,7 @@ export default function DebtsTab({
                   </div>
                   <button
                     onClick={() => handleOpenEditMain(debt)}
-                    className="w-full py-2 bg-[color:var(--claude-bg-strong)] border border-[color:var(--claude-border)] rounded-xl font-semibold hover:bg-slate-200/60 transition text-[11px] text-[color:var(--claude-ink)]"
+                    className="w-full cursor-pointer rounded-xl bg-[color:var(--claude-bg-strong)] py-2 text-xs font-medium text-[color:var(--claude-ink)] transition hover:brightness-95"
                   >
                     Edit Main Specs
                   </button>

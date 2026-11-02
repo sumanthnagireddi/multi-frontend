@@ -360,7 +360,7 @@ export default function FinanceDashboard() {
 
   const handleAddDebt = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!dContactName || !dAmount || !dDueDate) return;
+    if (!dContactName || !dAmount) return;
     try {
       await financeService.addDebt({
         contactName: dContactName,
