@@ -19,6 +19,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_FINANCE_API_URL: https://webservices-rqvr.onrender.com
+          VITE_RESOURCES_API_URL: https://webservices-rqvr.onrender.com
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}

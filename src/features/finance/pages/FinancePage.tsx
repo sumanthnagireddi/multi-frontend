@@ -122,7 +122,7 @@ export default function FinanceDashboard() {
 
       let apiConstructionExpenses = fetchedConst;
       try {
-        const response = await fetch('http://localhost:3000/finance/construction-expenses');
+        const response = await fetch(`${getApiUrl()}/finance/construction-expenses`);
         if (response.ok) {
           const records = await response.json() as Array<Record<string, any>>;
           apiConstructionExpenses = records

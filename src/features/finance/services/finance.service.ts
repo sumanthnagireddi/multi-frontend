@@ -1,3 +1,5 @@
+import { environment } from '@/shared/config/env';
+
 export interface CardInfo {
   id: string;
   name: string;
@@ -218,7 +220,7 @@ export const financeService = {
   async getConstructionExpenses(): Promise<ConstructionExpense[]> {
     await delay();
     try {
-      const response = await fetch('http://localhost:3000/finance/construction-expenses');
+      const response = await fetch(`${environment.financeApiUrl}/finance/construction-expenses`);
       if (!response.ok) throw new Error('Could not load construction expenses');
       const records = await response.json() as Array<Record<string, any>>;
       return records
@@ -242,7 +244,7 @@ export const financeService = {
   async addConstructionExpense(expense: Omit<ConstructionExpense, 'id'>) {
     await delay();
     try {
-      const response = await fetch('http://localhost:3000/finance/construction-expenses', {
+      const response = await fetch(`${environment.financeApiUrl}/finance/construction-expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(expense)
@@ -261,7 +263,7 @@ export const financeService = {
   async updateConstructionExpenseStatus(id: string, status: 'Paid' | 'Pending') {
     await delay();
     try {
-      await fetch(`http://localhost:3000/finance/construction-expenses/${id}/status`, {
+      await fetch(`${environment.financeApiUrl}/finance/construction-expenses/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
@@ -277,7 +279,7 @@ export const financeService = {
   async deleteConstructionExpense(id: string) {
     await delay();
     try {
-      await fetch(`http://localhost:3000/finance/construction-expenses/${id}`, { method: 'DELETE' });
+      await fetch(`${environment.financeApiUrl}/finance/construction-expenses/${id}`, { method: 'DELETE' });
       return true;
     } catch {
       loadConstructionExpenses();
@@ -289,7 +291,7 @@ export const financeService = {
   async editConstructionExpense(id: string, expense: Partial<Omit<ConstructionExpense, 'id'>>) {
     await delay();
     try {
-      const response = await fetch(`http://localhost:3000/finance/construction-expenses/${id}`, {
+      const response = await fetch(`${environment.financeApiUrl}/finance/construction-expenses/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(expense)
@@ -307,7 +309,7 @@ export const financeService = {
   async getConstructionBudget() {
     await delay();
     try {
-      const response = await fetch('http://localhost:3000/finance/construction-budget');
+      const response = await fetch(`${environment.financeApiUrl}/finance/construction-budget`);
       if (!response.ok) throw new Error('Could not load construction budget');
       const value = await response.json() as number | { budget?: number; monthlyBudget?: number };
       if (typeof value === 'number') return value;
@@ -319,7 +321,7 @@ export const financeService = {
   async updateConstructionBudget(budget: number) {
     await delay();
     try {
-      await fetch('http://localhost:3000/finance/construction-budget', {
+      await fetch(`${environment.financeApiUrl}/finance/construction-budget`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ budget })
