@@ -333,14 +333,97 @@ export const financeService = {
     return budget;
   },
 
-  async getDebts() { await delay(); return [...debts]; },
-  async addDebt(debt: Omit<DebtEntry, 'id' | 'paidAmount' | 'partialPayments'>) { await delay(); const item: DebtEntry = { ...debt, id: uid('debt'), paidAmount: 0, partialPayments: [] }; debts.push(item); return item; },
-  async editDebt(id: string, debt: Partial<Omit<DebtEntry, 'id' | 'paidAmount' | 'partialPayments'>>) { await delay(); debts = debts.map(item => item.id === id ? { ...item, ...debt } : item); return debts.find(item => item.id === id)!; },
-  async updateDebtStatus(id: string, status: 'Pending' | 'Paid') { await delay(); debts = debts.map(item => item.id === id ? { ...item, status, paidAmount: status === 'Paid' ? item.amount : item.paidAmount } : item); return true; },
-  async deleteDebt(id: string) { await delay(); debts = debts.filter(item => item.id !== id); return true; },
-  async addPartialPayment(debtId: string, payment: { amount: number; date: string; notes?: string }) { await delay(); debts = debts.map(item => { if (item.id !== debtId) return item; const paidAmount = item.paidAmount + payment.amount; return { ...item, paidAmount, status: paidAmount >= item.amount ? 'Paid' as const : 'Partial' as const, partialPayments: [...item.partialPayments, { id: uid('payment'), amount: payment.amount, date: payment.date, notes: payment.notes || '' }] }; }); return debts.find(item => item.id === debtId)!; },
-  async editPartialPayment(debtId: string, partialId: string, payment: { amount?: number; date?: string; notes?: string }) { await delay(); debts = debts.map(item => item.id === debtId ? { ...item, partialPayments: item.partialPayments.map(partial => partial.id === partialId ? { ...partial, ...payment } : partial) } : item); return debts.find(item => item.id === debtId)!; },
-  async deletePartialPayment(debtId: string, partialId: string) { await delay(); debts = debts.map(item => item.id === debtId ? { ...item, partialPayments: item.partialPayments.filter(partial => partial.id !== partialId) } : item); return debts.find(item => item.id === debtId)!; },
+  async getDebts(): Promise<DebtEntry[]> {
+    await delay();
+    try {
+      const response = await fetch(`${environment.financeApiUrl}/finance/debts-ledger`);
+      if (!response.ok) throw new Error('Could not load debt ledger');
+      return await response.json() as DebtEntry[];
+    } catch {
+      return [...debts];
+    }
+  },
+  async addDebt(debt: Omit<DebtEntry, 'id' | 'paidAmount' | 'partialPayments'>) {
+    await delay();
+    try {
+      const response = await fetch(`${environment.financeApiUrl}/finance/debts-ledger`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(debt)
+      });
+      if (!response.ok) throw new Error('Could not create debt');
+      return await response.json() as DebtEntry;
+    } catch {
+      const item: DebtEntry = { ...debt, id: uid('debt'), paidAmount: 0, partialPayments: [] };
+      debts.push(item);
+      return item;
+    }
+  },
+  async editDebt(id: string, debt: Partial<Omit<DebtEntry, 'id' | 'paidAmount' | 'partialPayments'>>) {
+    await delay();
+    try {
+      const response = await fetch(`${environment.financeApiUrl}/finance/debts-ledger/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(debt)
+      });
+      if (!response.ok) throw new Error('Could not edit debt');
+      return await response.json() as DebtEntry;
+    } catch {
+      debts = debts.map(item => item.id === id ? { ...item, ...debt } : item);
+      return debts.find(item => item.id === id)!;
+    }
+  },
+  async updateDebtStatus(id: string, status: 'Pending' | 'Paid') {
+    await delay();
+    try {
+      const response = await fetch(`${environment.financeApiUrl}/finance/debts-ledger/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      return response.ok;
+    } catch {
+      debts = debts.map(item => item.id === id ? { ...item, status, paidAmount: status === 'Paid' ? item.amount : item.paidAmount } : item);
+      return true;
+    }
+  },
+  async deleteDebt(id: string) {
+    await delay();
+    try {
+      const response = await fetch(`${environment.financeApiUrl}/finance/debts-ledger/${id}`, { method: 'DELETE' });
+      return response.ok;
+    } catch {
+      debts = debts.filter(item => item.id !== id);
+      return true;
+    }
+  },
+  async addPartialPayment(debtId: string, payment: { amount: number; date: string; notes?: string }) {
+    await delay();
+    const response = await fetch(`${environment.financeApiUrl}/finance/debts-ledger/${debtId}/partial-payments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payment)
+    });
+    if (!response.ok) throw new Error('Could not add partial payment');
+    return await response.json() as DebtEntry;
+  },
+  async editPartialPayment(debtId: string, partialId: string, payment: { amount?: number; date?: string; notes?: string }) {
+    await delay();
+    const response = await fetch(`${environment.financeApiUrl}/finance/debts-ledger/${debtId}/partial-payments/${partialId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payment)
+    });
+    if (!response.ok) throw new Error('Could not edit partial payment');
+    return await response.json() as DebtEntry;
+  },
+  async deletePartialPayment(debtId: string, partialId: string) {
+    await delay();
+    const response = await fetch(`${environment.financeApiUrl}/finance/debts-ledger/${debtId}/partial-payments/${partialId}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Could not delete partial payment');
+    return await response.json() as DebtEntry;
+  },
 
   async getCardBillStatements(targetMonth: string): Promise<CardBillStatement[]> {
     await delay();
