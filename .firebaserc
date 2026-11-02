@@ -6,8 +6,8 @@
   "targets": {
     "multi-frontends": {
       "hosting": {
-        "react-app": [
-          "multi-frontends-react"
+        "portfolio": [
+          "sumanth16"
         ]
       }
     }

@@ -25,4 +25,4 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MULTI_FRONTENDS }}
           channelId: live
           projectId: multi-frontends
-          target: react-app
+          target: portfolio

@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "target": "react-app",
+    "target": "portfolio",
     "public": "dist",
     "ignore": [
       "firebase.json",
