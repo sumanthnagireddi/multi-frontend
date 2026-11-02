@@ -43,7 +43,7 @@
 /* Base UI-inspired documentation shell */
 .docs-root {
   width: 100vw;
-  height: 100vh;
+  height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -612,7 +612,7 @@ html.dark .resources-docs-search-input {
 .editor-container {
   display: flex;
   flex: 1;
-  height: calc(100vh - 96px);
+  height: 100%;
   overflow: hidden;
   position: relative;
 }
@@ -861,7 +861,7 @@ html.dark .resources-docs-search-input {
   background: var(--panel);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 96px);
+  height: 100%;
   overflow-y: auto;
 }
 
@@ -911,8 +911,8 @@ html.dark .resources-docs-search-input {
 
 /* Standalone sidebar and editor content */
 .docs-root {
-  height: 100vh;
-  min-height: 100vh;
+  height: calc(100vh - 80px);
+  min-height: calc(100vh - 80px);
   --confluence-blue: #1868db;
 }
 
@@ -2098,8 +2098,8 @@ html.dark .resources-space-menu button:hover {
   }
 
   .docs-root {
-    height: 100vh;
-    min-height: 100vh;
+    height: calc(100vh - 64px);
+    min-height: calc(100vh - 64px);
   }
 
   .resources-docs-header {

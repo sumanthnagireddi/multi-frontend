@@ -782,8 +782,17 @@ html.dark a {
   border: 0 !important;
   border-radius: 9px;
   color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1;
+  font-weight: 650;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   flex: 0 0 auto;
+  gap: 7px !important;
+  padding-left: 13px !important;
+  padding-right: 13px !important;
   -webkit-margin-before: 0 !important;
   margin-bottom: 0 !important;
 }
@@ -802,7 +811,7 @@ html.dark a {
   background: #18181b !important;
   border: 1px solid #18181b !important;
   box-shadow: 0 3px 12px rgba(24, 24, 27, 0.18) !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
 }
 
 .finance-clerk-tabs button[data-active="true"]::after {

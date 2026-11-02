@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Link, Navigate, NavLink, Route, Routes, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/app/providers/AuthProvider';
 import { ToastProvider } from '@/app/providers/ToastProvider';
 import Finance from '@/features/finance';
@@ -10,8 +10,6 @@ import ResourceWorkspace from '@/features/resources';
 
 function ThemeShell() {
   const [dark, setDark] = useState(() => localStorage.getItem('app-theme') === 'dark');
-  const location = useLocation();
-  const isResourcesRoute = location.pathname.startsWith('/resources');
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
@@ -19,7 +17,7 @@ function ThemeShell() {
   }, [dark]);
   return (
     <div className="standalone-shell">
-      {!isResourcesRoute && <GlobalNavbar dark={dark} setDark={setDark} />}
+      <GlobalNavbar dark={dark} setDark={setDark} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

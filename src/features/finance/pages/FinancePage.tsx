@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { environment } from '@/shared/config/env';
 import {
   financeService,
@@ -23,6 +24,8 @@ import ChitTab from '../components/ChitTab';
 const getApiUrl = () => environment.financeApiUrl;
 
 export default function FinanceDashboard() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [cards, setCards] = useState<CardInfo[]>([]);
   const [personalExpenses, setPersonalExpenses] = useState<PersonalExpense[]>([]);
@@ -40,6 +43,18 @@ export default function FinanceDashboard() {
   });
   const [personalCategoryFilter, setPersonalCategoryFilter] = useState<string>('All');
   const [personalCardFilter, setPersonalCardFilter] = useState<string>('All');
+
+  useEffect(() => {
+    const hashTab = decodeURIComponent(location.hash.replace(/^#/, '')).trim();
+    if (hashTab) setActiveTab(hashTab);
+  }, [location.hash]);
+
+  useEffect(() => {
+    const nextHash = activeTab === 'overview' ? '' : `#${encodeURIComponent(activeTab)}`;
+    if (location.hash !== nextHash) {
+      navigate({ pathname: location.pathname, search: location.search, hash: nextHash }, { replace: true });
+    }
+  }, [activeTab, location.hash, location.pathname, location.search, navigate]);
 
   // Success Notification state
 
@@ -502,6 +517,7 @@ export default function FinanceDashboard() {
     const list = [
       { key: 'house', name: 'House Construction', budget: constructionBudget, id: 'default' }
     ];
+    const projectsByKey = new Map(list.map(project => [project.key, project]));
     let projectEntries = constructionExpenses;
     if (typeof window !== 'undefined') {
       try {
@@ -517,15 +533,37 @@ export default function FinanceDashboard() {
     }
     projectEntries.forEach(e => {
       if (e.category === 'system_project_metadata') {
-        list.push({
+        const project = {
           key: e.source || '',
           name: e.title || '',
           budget: e.amount,
           id: e.id
+        };
+        if (project.key) projectsByKey.set(project.key, project);
+      }
+    });
+    projectEntries.forEach(e => {
+      const source = (e.source || '').trim();
+      if (
+        source &&
+        source !== 'manual' &&
+        source !== 'house' &&
+        e.category !== 'system_project_metadata' &&
+        !projectsByKey.has(source)
+      ) {
+        projectsByKey.set(source, {
+          key: source,
+          name: source
+            .split('-')
+            .filter(Boolean)
+            .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(' '),
+          budget: 0,
+          id: `source-${source}`
         });
       }
     });
-    return list;
+    return [projectsByKey.get('house')!, ...Array.from(projectsByKey.values()).filter(project => project.key !== 'house')];
   }, [constructionExpenses, constructionBudget]);
 
   // Month options for dropdown selection
@@ -595,7 +633,7 @@ export default function FinanceDashboard() {
                 color: '#ffffff',
                 border: '1px solid #18181b',
                 boxShadow: '0 3px 12px rgba(24, 24, 27, 0.18)',
-                fontWeight: 800
+                fontWeight: 700
               } : undefined}
               className={`finance-clerk-tab px-3.5 py-2.5 text-xs font-semibold flex items-center gap-2 transition duration-200 shrink-0 rounded-xl ${
                 activeTab === tab.id
@@ -622,7 +660,7 @@ export default function FinanceDashboard() {
                 color: '#ffffff',
                 border: '1px solid #18181b',
                 boxShadow: '0 3px 12px rgba(24, 24, 27, 0.18)',
-                fontWeight: 800
+                fontWeight: 700
               } : undefined}
               className={`finance-clerk-tab px-3.5 py-2.5 text-xs font-semibold flex items-center gap-2 transition duration-200 shrink-0 rounded-xl ${
                 activeTab === `project-${proj.key}`
@@ -647,7 +685,7 @@ export default function FinanceDashboard() {
               color: '#ffffff',
               border: '1px solid #18181b',
               boxShadow: '0 3px 12px rgba(24, 24, 27, 0.18)',
-              fontWeight: 800
+              fontWeight: 700
             } : undefined}
             className={`finance-clerk-tab px-3.5 py-2.5 text-xs font-semibold flex items-center gap-2 transition duration-200 shrink-0 rounded-xl ${
               activeTab === 'debts'
