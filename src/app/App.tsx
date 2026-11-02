@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Link, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, NavLink, Route, Routes, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/app/providers/AuthProvider';
 import { ToastProvider } from '@/app/providers/ToastProvider';
 import Finance from '@/features/finance';
 import Ai from '@/features/ai';
 import Jobs from '@/features/ai/pages/JobsPage';
 import GoldPrediction from '@/features/gold';
+import ResourceWorkspace from '@/features/resources';
 
 function ThemeShell() {
   const [dark, setDark] = useState(() => localStorage.getItem('app-theme') === 'dark');
+  const location = useLocation();
+  const isResourcesRoute = location.pathname.startsWith('/resources');
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
@@ -16,14 +19,14 @@ function ThemeShell() {
   }, [dark]);
   return (
     <div className="standalone-shell">
-      <GlobalNavbar dark={dark} setDark={setDark} />
+      {!isResourcesRoute && <GlobalNavbar dark={dark} setDark={setDark} />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/finance/*" element={<Protected><Finance /></Protected>} />
         <Route path="/ai" element={<Ai />} />
         <Route path="/ai/jobs" element={<Jobs />} />
-        <Route path="/resources/*" element={<Resources />} />
+        <Route path="/resources/*" element={<ResourceWorkspace />} />
         <Route path="/playbook" element={<Playbook />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/gold-prediction/:runId?" element={<GoldPrediction />} />
@@ -198,8 +201,138 @@ function Home() {
 }
 
 function Resources() {
-  const pages = ['Getting Started', 'React Patterns', 'System Design', 'JavaScript Fundamentals', 'Interview Preparation'];
-  return <main className="content-page"><aside className="content-sidebar"><strong>Engineering Resources</strong>{pages.map(page => <button key={page}>{page}</button>)}</aside><section><p className="section-kicker">Knowledge base</p><h1>Engineering Resources</h1><p>Architecture notes, implementation patterns, and interview preparation—all in one React workspace.</p><div className="resource-grid">{pages.map((page, index) => <article key={page}><span>0{index + 1}</span><h2>{page}</h2><p>Open practical notes, examples, and implementation guidance.</p></article>)}</div></section></main>;
+  const { '*': pagePath } = useParams();
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [completed, setCompleted] = useState<Set<string>>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('resource-completed-pages') || '[]');
+      return new Set(Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : []);
+    } catch {
+      return new Set();
+    }
+  });
+
+  const sections = [
+    { id: 'getting-started', title: 'Engineering Guides', type: 'space', pages: [
+      { id: 'quick-start', title: 'Quick start' },
+      { id: 'project-layout', title: 'Project layout' },
+    ] },
+    { id: 'interview-preparation', title: 'Interview preparation', type: 'folder', pages: [
+      { id: 'javascript', title: 'JavaScript fundamentals' },
+      { id: 'react-patterns', title: 'React patterns' },
+      { id: 'system-design', title: 'System design' },
+    ] },
+  ];
+  const allPages = sections.flatMap(section => section.pages);
+  const selected = allPages.find(page => page.id === pagePath) ?? allPages[0];
+  const progress = Math.round((completed.size / allPages.length) * 100);
+
+  useEffect(() => {
+    localStorage.setItem('resource-completed-pages', JSON.stringify([...completed]));
+  }, [completed]);
+
+  useEffect(() => {
+    if (!pagePath) navigate('/resources/quick-start', { replace: true });
+  }, [navigate, pagePath]);
+
+  function completePage() {
+    setCompleted(current => {
+      const next = new Set(current);
+      next.add(selected.id);
+      return next;
+    });
+    const index = allPages.findIndex(page => page.id === selected.id);
+    if (index >= 0 && index < allPages.length - 1) navigate(`/resources/${allPages[index + 1].id}`);
+  }
+
+  const descriptions: Record<string, string> = {
+    'quick-start': 'A practical starting point for building clean, maintainable applications.',
+    'project-layout': 'Structure an application so modules remain clear as the codebase grows.',
+    javascript: 'Core language concepts, execution behavior, and interview patterns.',
+    'react-patterns': 'Reusable component patterns for predictable React applications.',
+    'system-design': 'Architecture fundamentals for scalable, reliable web systems.',
+  };
+
+  return (
+    <div className="resources-theme-root docs-root">
+      <header className="resources-docs-header">
+        <button type="button" className="resources-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open sidebar">☰</button>
+        <Link to="/resources" className="resources-docs-brand" aria-label="Interview Resources">
+          <span className="resources-brand-mark" aria-hidden="true"><span /><span /></span>
+          <span className="resources-brand-name">Resources</span>
+        </Link>
+        <div className="resources-docs-header-spacer" />
+        <button className="resources-docs-search" type="button" title="Search resources" aria-label="Search resources">
+          <span>⌕</span><span>Navigation</span>
+        </button>
+      </header>
+      <div className="resources-main-row">
+        <aside className={`resources-sidebar sidebar-desktop ${mobileOpen ? 'mobile-open' : ''}`}>
+          {mobileOpen && <button type="button" className="resources-mobile-close" onClick={() => setMobileOpen(false)} aria-label="Close sidebar">×</button>}
+          <div className="resources-progress">
+            <div className="resources-progress-top"><span>Learning progress</span><strong>{progress}%</strong></div>
+            <div className="resources-progress-track"><span style={{ width: `${progress}%` }} /></div>
+          </div>
+          <nav aria-label="Resource pages">
+            {sections.map(section => (
+              <div className="resources-sidebar-section" key={section.id}>
+                <div className="resources-sidebar-title"><span>{section.type === 'space' ? '⌘' : '▾'}</span><strong>{section.title}</strong></div>
+                {section.pages.map(page => (
+                  <Link
+                    key={page.id}
+                    to={`/resources/${page.id}`}
+                    onClick={() => setMobileOpen(false)}
+                    className={`resources-sidebar-page ${selected.id === page.id ? 'active' : ''}`}
+                  >
+                    <span className="resources-page-status">{completed.has(page.id) ? '✓' : '○'}</span>
+                    <span>{page.title}</span>
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </nav>
+        </aside>
+        <section className="docs-editor-shell">
+          <div className="docs-actionbar">
+            <div className="docs-breadcrumb">Resources <span>/</span> <strong>{selected.title}</strong></div>
+            <div className="docs-actions">
+              <button type="button" className="docs-save-button" onClick={() => localStorage.setItem(`resource-page-${selected.id}`, 'saved')}>Save</button>
+              <button type="button" className="docs-complete-button" onClick={completePage}>{completed.has(selected.id) ? 'Completed' : 'Mark complete'}</button>
+            </div>
+          </div>
+          <div className="docs-editor-scroll">
+            <div className="docs-article-layout">
+              <article className="docs-article">
+                <header className="docs-article-header">
+                  <h1>{selected.title}</h1>
+                  <p>{descriptions[selected.id] ?? 'Practical engineering guidance and interview preparation material.'}</p>
+                  <button type="button" className="docs-markdown-button"><span>MD</span><span>Markdown</span></button>
+                </header>
+                <div className="resources-editor-content">
+                  <h2>Overview</h2>
+                  <p>Use this documentation area to capture implementation notes, examples, commands, and interview preparation material.</p>
+                  <h2>Quick example</h2>
+                  <pre><code>{selected.id === 'javascript' ? 'const skills = ["arrays", "closures", "async"];' : 'npm install\nnpm run dev'}</code></pre>
+                  <h2>Next steps</h2>
+                  <ul><li>Review the core concepts</li><li>Build a small example</li><li>Add tests and edge cases</li></ul>
+                </div>
+              </article>
+              <aside className="docs-toc">
+                <div className="docs-toc-inner">
+                  <div className="docs-toc-title">On this page</div>
+                  <button type="button" className="toc-current">Overview</button>
+                  <button type="button">Quick example</button>
+                  <button type="button">Next steps</button>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+      </div>
+      {mobileOpen && <button type="button" className="resources-mobile-backdrop" onClick={() => setMobileOpen(false)} aria-label="Close sidebar overlay" />}
+    </div>
+  );
 }
 
 function Playbook() {
