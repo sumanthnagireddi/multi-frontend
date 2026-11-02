@@ -110,76 +110,80 @@ function Login() {
 }
 
 function Home() {
-  const years = (2021 + 3 / 12);
-  const experience = (new Date().getFullYear() + new Date().getMonth() / 12 - years).toFixed(1);
+  const joiningDate = new Date(2021, 10, 22); // November 22, 2021
+  const today = new Date();
+
+  const experience =
+    ((today.getTime() - joiningDate.getTime()) /
+      (1000 * 60 * 60 * 24 * 365.25)).toFixed(1);
   return (
     <main className="clerk-home">
       <div className="home-main">
-      <section className="hero">
-        <div className="hero-grid" aria-hidden="true" />
-        <div className="hero-copy-block">
-          <div className="hero-badge"><span className="status-dot" />Available for ambitious projects</div>
-          <h1>Engineering ideas into<br /><span>intelligent solutions.</span></h1>
-          <p className="hero-copy">Full-stack developer crafting scalable web platforms, intelligent workflows, and seamless digital experiences with Angular, React, Node.js, and NestJS.</p>
-          <div className="hero-actions"><Link to="/ai" className="primary-button">Explore AI Studio</Link><Link to="/resources" className="secondary-button">Browse resources</Link></div>
-        </div>
-        <div className="hero-profile">
-          <div className="profile-orbit orbit-one" aria-hidden="true" />
-          <div className="profile-orbit orbit-two" aria-hidden="true" />
-          <img src="/image.jpg" alt="Sumanth Nagireddi" />
-          <div className="profile-card"><span className="profile-status" /><div><strong>Sumanth Nagireddi</strong><small>Senior Full-Stack Engineer</small></div></div>
-        </div>
-      </section>
-
-      <section className="feature-shell reveal" aria-label="Featured workspace">
-        <div className="feature-tabs">
-          <Link to="/ai" className="feature-tab active"><span className="tab-dot" />AI Studio</Link>
-          <Link to="/resources" className="feature-tab"><span className="tab-dot" />Knowledge base</Link>
-          <Link to="/playbook" className="feature-tab"><span className="tab-dot" />Developer playbook</Link>
-        </div>
-        <div className="workspace-preview">
-          <aside className="preview-sidebar">
-            <div className="preview-brand"><span className="preview-logo">SN</span><span>Engineering</span></div>
-            <div className="preview-nav">
-              <span className="preview-label">Workspace</span>
-              <span className="preview-item active"><span className="preview-icon">⌂</span> Overview</span>
-              <span className="preview-item"><span className="preview-icon">✦</span> AI Studio</span>
-              <span className="preview-item"><span className="preview-icon">⌘</span> Resources</span>
-              <span className="preview-item"><span className="preview-icon">↗</span> Projects</span>
-            </div>
-          </aside>
-          <div className="preview-content">
-            <div className="preview-header"><div><span className="preview-kicker">Engineering overview</span><h2>Ideas in motion</h2></div><span className="preview-period">Updated today</span></div>
-            <div className="preview-stats">
-              <article><span>Experience</span><strong>{experience} years</strong><small>Full-stack engineering</small></article>
-              <article><span>Core stack</span><strong>React + Node</strong><small>Product delivery</small></article>
-              <article><span>Current focus</span><strong>AI Native</strong><small>Building smarter workflows</small></article>
-            </div>
-            <div className="preview-chart"><div className="chart-heading"><div><span>Weekly engineering activity</span><strong>Consistent momentum</strong></div><span className="chart-period">7 days</span></div><div className="chart-bars" aria-hidden="true">{[46,64,52,78,68,92,84].map((height,index)=><span key={index} style={{height:`${height}%`}} />)}</div></div>
+        <section className="hero">
+          <div className="hero-grid" aria-hidden="true" />
+          <div className="hero-copy-block">
+            <div className="hero-badge"><span className="status-dot" />Available for ambitious projects</div>
+            <h1>Engineering ideas into<br /><span>intelligent solutions.</span></h1>
+            <p className="hero-copy">Full-stack developer crafting scalable web platforms, intelligent workflows, and seamless digital experiences with Angular, React, Node.js, and NestJS.</p>
+            <div className="hero-actions"><Link to="/ai" className="primary-button">Explore AI Studio</Link><Link to="/resources" className="secondary-button">Browse resources</Link></div>
           </div>
-        </div>
-      </section>
+          <div className="hero-profile">
+            <div className="profile-orbit orbit-one" aria-hidden="true" />
+            <div className="profile-orbit orbit-two" aria-hidden="true" />
+            <img src="/image.jpg" alt="Sumanth Nagireddi" />
+            <div className="profile-card"><span className="profile-status" /><div><strong>Sumanth Nagireddi</strong><small>Senior Full-Stack Engineer</small></div></div>
+          </div>
+        </section>
 
-      <section className="metrics-section"><article><strong>{experience}+</strong><span>Years of engineering experience</span></article><article><strong>8+</strong><span>Core technologies across product stacks</span></article><article><strong>End-to-end</strong><span>From architecture to polished delivery</span></article><article><strong>AI-ready</strong><span>Practical workflows built into products</span></article></section>
-      <section id="experience" className="experience-section"><div className="experience-heading"><div><p className="section-kicker">Experience</p><h2>Turning complex systems into clear product experiences.</h2></div><p>Product-minded engineering across web applications, APIs, cloud-ready services, and AI-assisted workflows.</p></div><div className="experience-grid">
-        <article className="experience-card"><div className="experience-meta"><span>November 2021 — June 2024</span><span>01</span></div><h3>Infosys</h3><p className="role-name">Full-stack Developer</p><p>Built responsive, business-critical web applications and reusable component systems.</p><div className="experience-tags"><span>React</span><span>Angular</span><span>REST APIs</span><span>TypeScript</span></div></article>
-        <article className="experience-card"><div className="experience-meta"><span>June 2024 — December 2024</span><span>02</span></div><h3>Nagarro</h3><p className="role-name">Full-stack Developer</p><p>Delivered enterprise-scale applications with API integration and modern frontend patterns.</p><div className="experience-tags"><span>React</span><span>Node.js</span><span>Azure</span><span>NestJS</span></div></article>
-        <article className="experience-card"><div className="experience-meta"><span>December 2024 — Present</span><span>03</span></div><h3>EPAM Systems</h3><p className="role-name">Full-stack Developer</p><p>Engineering robust, accessible enterprise applications with a focus on architecture, performance, API integration, and production-quality delivery.</p><div className="experience-tags"><span>Enterprise apps</span><span>Architecture</span><span>Cloud</span><span>AI workflows</span></div></article>
-      </div></section>
-      <section id="skills" className="skills-section">
-        <div className="skills-intro"><p className="section-kicker">Capabilities</p><h2>A full-stack toolkit for building complete products.</h2></div>
-        <div className="skills-grid">
-          <article className="skill-card skill-featured"><div className="skill-card-heading"><span className="skill-number">01</span><span className="skill-status">Primary</span></div><h3>Frontend Engineering</h3><p>Building polished, accessible interfaces with strong component architecture, responsive behavior, state management, and reusable design systems.</p><div className="skill-list"><span>Angular</span><span>React</span><span>Next.js</span><span>TypeScript</span><span>RxJS</span><span>HTML / CSS</span></div></article>
-          <article className="skill-card"><div className="skill-card-heading"><span className="skill-number">02</span><span className="skill-status">Primary</span></div><h3>Backend & APIs</h3><p>Designing secure APIs and maintainable services with clear contracts, authentication, validation, data modeling, and dependable integrations.</p><div className="skill-list"><span>Node.js</span><span>NestJS</span><span>REST</span><span>PostgreSQL</span><span>Auth</span></div></article>
-          <article className="skill-card"><div className="skill-card-heading"><span className="skill-number">03</span><span className="skill-status">Delivery</span></div><h3>Engineering Delivery</h3><p>Translating product goals into reliable technical solutions through design reviews, iterative delivery, testing, performance work, and ownership.</p><div className="skill-list"><span>System design</span><span>Performance</span><span>Git</span><span>Testing</span><span>CI/CD</span></div></article>
-          <article className="skill-card"><div className="skill-card-heading"><span className="skill-number">04</span><span className="skill-status">Growing</span></div><h3>AI & Developer Experience</h3><p>Creating practical AI-assisted experiences, prototypes, workflow automation, documentation tools, and developer-focused interfaces.</p><div className="skill-list"><span>AI SDKs</span><span>Prompt workflows</span><span>Automation</span><span>DX tooling</span></div></article>
-        </div>
-      </section>
+        <section className="feature-shell reveal" aria-label="Featured workspace">
+          <div className="feature-tabs">
+            <Link to="/ai" className="feature-tab active"><span className="tab-dot" />AI Studio</Link>
+            <Link to="/resources" className="feature-tab"><span className="tab-dot" />Knowledge base</Link>
+            <Link to="/playbook" className="feature-tab"><span className="tab-dot" />Developer playbook</Link>
+          </div>
+          <div className="workspace-preview">
+            <aside className="preview-sidebar">
+              <div className="preview-brand"><span className="preview-logo">SN</span><span>Engineering</span></div>
+              <div className="preview-nav">
+                <span className="preview-label">Workspace</span>
+                <span className="preview-item active"><span className="preview-icon">⌂</span> Overview</span>
+                <span className="preview-item"><span className="preview-icon">✦</span> AI Studio</span>
+                <span className="preview-item"><span className="preview-icon">⌘</span> Resources</span>
+                <span className="preview-item"><span className="preview-icon">↗</span> Projects</span>
+              </div>
+            </aside>
+            <div className="preview-content">
+              <div className="preview-header"><div><span className="preview-kicker">Engineering overview</span><h2>Ideas in motion</h2></div><span className="preview-period">Updated today</span></div>
+              <div className="preview-stats">
+                <article><span>Experience</span><strong>{experience} years</strong><small>Full-stack engineering</small></article>
+                <article><span>Core stack</span><strong>React + Node</strong><small>Product delivery</small></article>
+                <article><span>Current focus</span><strong>AI Native</strong><small>Building smarter workflows</small></article>
+              </div>
+              <div className="preview-chart"><div className="chart-heading"><div><span>Weekly engineering activity</span><strong>Consistent momentum</strong></div><span className="chart-period">7 days</span></div><div className="chart-bars" aria-hidden="true">{[46, 64, 52, 78, 68, 92, 84].map((height, index) => <span key={index} style={{ height: `${height}%` }} />)}</div></div>
+            </div>
+          </div>
+        </section>
 
-      <section className="stack-section"><p className="section-kicker">Built across the stack</p><h2>One engineer. End-to-end product ownership.</h2><div className="stack-list"><span>Angular</span><span>React</span><span>Next.js</span><span>Node.js</span><span>NestJS</span><span>TypeScript</span><span>PostgreSQL</span><span>AI SDKs</span></div></section>
-      <section className="testimonials-section"><div className="testimonials-heading"><p className="section-kicker">Working together</p><h2>Engineering built on clarity, ownership, and momentum.</h2></div><div className="testimonial-grid"><article><div className="quote-mark">“</div><p>Strong engineering starts with understanding the product. Every implementation should reduce complexity, not move it somewhere else.</p><span><strong>Product thinking</strong><small>Start with the problem</small></span></article><article><div className="quote-mark">“</div><p>Reliable software is the result of clear architecture, accessible interfaces, thoughtful testing, and continuous improvement.</p><span><strong>Engineering quality</strong><small>Built for the long term</small></span></article><article><div className="quote-mark">“</div><p>The best collaboration keeps momentum visible—shared context, direct communication, small decisions, and measurable progress.</p><span><strong>Team momentum</strong><small>Clear and collaborative</small></span></article></div></section>
-      <section className="workspace-grid"><Link to="/ai" className="workspace-card ai-card"><div className="card-topline"><span className="card-icon">AI</span><span>01</span></div><h2>AI Studio</h2><p>Chat with connected models and explore practical AI-assisted engineering workflows.</p><span className="card-link">Open studio →</span></Link><Link to="/resources" className="workspace-card"><div className="card-topline"><span className="card-icon">KB</span><span>02</span></div><h2>Resources</h2><p>Browse architecture notes, interview materials, and reusable engineering knowledge.</p><span className="card-link">Browse knowledge →</span></Link><a href="https://github.com/" target="_blank" rel="noreferrer" className="workspace-card"><div className="card-topline"><span className="card-icon">GH</span><span>03</span></div><h2>Open Source</h2><p>Explore recent repositories, experiments, code samples, and public engineering work.</p><span className="card-link">Visit GitHub →</span></a></section>
-      <section className="contact-section"><div className="contact-grid" aria-hidden="true" /><span className="contact-kicker">Have a product in mind?</span><h2>Let’s build something<br /><span>worth using.</span></h2><div className="contact-actions"><a href="mailto:you@example.com" className="primary-button">Start a conversation</a><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer" className="secondary-button">Connect on LinkedIn</a></div></section>
+        <section className="metrics-section"><article><strong>{experience}+</strong><span>Years of engineering experience</span></article><article><strong>+</strong><span>Core technologies across product stacks</span></article><article><strong>End-to-end</strong><span>From architecture to polished delivery</span></article><article><strong>AI-ready</strong><span>Practical workflows built into products</span></article></section>
+        <section id="experience" className="experience-section"><div className="experience-heading"><div><p className="section-kicker">Experience</p><h2>Turning complex systems into clear product experiences.</h2></div><p>Product-minded engineering across web applications, APIs, cloud-ready services, and AI-assisted workflows.</p></div><div className="experience-grid">
+          <article className="experience-card"><div className="experience-meta"><span>November 2021 — June 2024</span><span>01</span></div><h3>Infosys</h3><p className="role-name">Full-stack Developer</p><p>Built responsive, business-critical web applications and reusable component systems.</p><div className="experience-tags"><span>React</span><span>Angular</span><span>REST APIs</span><span>TypeScript</span></div></article>
+          <article className="experience-card"><div className="experience-meta"><span>June 2024 — December 2024</span><span>02</span></div><h3>Nagarro</h3><p className="role-name">Full-stack Developer</p><p>Delivered enterprise-scale applications with API integration and modern frontend patterns.</p><div className="experience-tags"><span>React</span><span>Node.js</span><span>Azure</span><span>NestJS</span></div></article>
+          <article className="experience-card"><div className="experience-meta"><span>December 2024 — Present</span><span>03</span></div><h3>EPAM Systems</h3><p className="role-name">Full-stack Developer</p><p>Engineering robust, accessible enterprise applications with a focus on architecture, performance, API integration, and production-quality delivery.</p><div className="experience-tags"><span>Enterprise apps</span><span>Architecture</span><span>Cloud</span><span>AI workflows</span></div></article>
+        </div></section>
+        <section id="skills" className="skills-section">
+          <div className="skills-intro"><p className="section-kicker">Capabilities</p><h2>A full-stack toolkit for building complete products.</h2></div>
+          <div className="skills-grid">
+            <article className="skill-card skill-featured"><div className="skill-card-heading"><span className="skill-number">01</span><span className="skill-status">Primary</span></div><h3>Frontend Engineering</h3><p>Building polished, accessible interfaces with strong component architecture, responsive behavior, state management, and reusable design systems.</p><div className="skill-list"><span>Angular</span><span>React</span><span>Next.js</span><span>TypeScript</span><span>RxJS</span><span>HTML / CSS</span></div></article>
+            <article className="skill-card"><div className="skill-card-heading"><span className="skill-number">02</span><span className="skill-status">Primary</span></div><h3>Backend & APIs</h3><p>Designing secure APIs and maintainable services with clear contracts, authentication, validation, data modeling, and dependable integrations.</p><div className="skill-list"><span>Node.js</span><span>NestJS</span><span>REST</span><span>PostgreSQL</span><span>Auth</span></div></article>
+            <article className="skill-card"><div className="skill-card-heading"><span className="skill-number">03</span><span className="skill-status">Delivery</span></div><h3>Engineering Delivery</h3><p>Translating product goals into reliable technical solutions through design reviews, iterative delivery, testing, performance work, and ownership.</p><div className="skill-list"><span>System design</span><span>Performance</span><span>Git</span><span>Testing</span><span>CI/CD</span></div></article>
+            <article className="skill-card"><div className="skill-card-heading"><span className="skill-number">04</span><span className="skill-status">Growing</span></div><h3>AI & Developer Experience</h3><p>Creating practical AI-assisted experiences, prototypes, workflow automation, documentation tools, and developer-focused interfaces.</p><div className="skill-list"><span>AI SDKs</span><span>Prompt workflows</span><span>Automation</span><span>DX tooling</span></div></article>
+          </div>
+        </section>
+
+        <section className="stack-section"><p className="section-kicker">Built across the stack</p><h2>One engineer. End-to-end product ownership.</h2><div className="stack-list"><span>Angular</span><span>React</span><span>Next.js</span><span>Node.js</span><span>NestJS</span><span>TypeScript</span><span>PostgreSQL</span><span>AI SDKs</span></div></section>
+        <section className="testimonials-section"><div className="testimonials-heading"><p className="section-kicker">Working together</p><h2>Engineering built on clarity, ownership, and momentum.</h2></div><div className="testimonial-grid"><article><div className="quote-mark">“</div><p>Strong engineering starts with understanding the product. Every implementation should reduce complexity, not move it somewhere else.</p><span><strong>Product thinking</strong><small>Start with the problem</small></span></article><article><div className="quote-mark">“</div><p>Reliable software is the result of clear architecture, accessible interfaces, thoughtful testing, and continuous improvement.</p><span><strong>Engineering quality</strong><small>Built for the long term</small></span></article><article><div className="quote-mark">“</div><p>The best collaboration keeps momentum visible—shared context, direct communication, small decisions, and measurable progress.</p><span><strong>Team momentum</strong><small>Clear and collaborative</small></span></article></div></section>
+        <section className="workspace-grid"><Link to="/ai" className="workspace-card ai-card"><div className="card-topline"><span className="card-icon">AI</span><span>01</span></div><h2>AI Studio</h2><p>Chat with connected models and explore practical AI-assisted engineering workflows.</p><span className="card-link">Open studio →</span></Link><Link to="/resources" className="workspace-card"><div className="card-topline"><span className="card-icon">KB</span><span>02</span></div><h2>Resources</h2><p>Browse architecture notes, interview materials, and reusable engineering knowledge.</p><span className="card-link">Browse knowledge →</span></Link><a href="https://github.com/" target="_blank" rel="noreferrer" className="workspace-card"><div className="card-topline"><span className="card-icon">GH</span><span>03</span></div><h2>Open Source</h2><p>Explore recent repositories, experiments, code samples, and public engineering work.</p><span className="card-link">Visit GitHub →</span></a></section>
+        <section className="contact-section"><div className="contact-grid" aria-hidden="true" /><span className="contact-kicker">Have a product in mind?</span><h2>Let’s build something<br /><span>worth using.</span></h2><div className="contact-actions"><a href="mailto:you@example.com" className="primary-button">Start a conversation</a><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer" className="secondary-button">Connect on LinkedIn</a></div></section>
       </div>
       <footer className="home-footer">
         <div className="footer-inner">
@@ -212,15 +216,19 @@ function Resources() {
   });
 
   const sections = [
-    { id: 'getting-started', title: 'Engineering Guides', type: 'space', pages: [
-      { id: 'quick-start', title: 'Quick start' },
-      { id: 'project-layout', title: 'Project layout' },
-    ] },
-    { id: 'interview-preparation', title: 'Interview preparation', type: 'folder', pages: [
-      { id: 'javascript', title: 'JavaScript fundamentals' },
-      { id: 'react-patterns', title: 'React patterns' },
-      { id: 'system-design', title: 'System design' },
-    ] },
+    {
+      id: 'getting-started', title: 'Engineering Guides', type: 'space', pages: [
+        { id: 'quick-start', title: 'Quick start' },
+        { id: 'project-layout', title: 'Project layout' },
+      ]
+    },
+    {
+      id: 'interview-preparation', title: 'Interview preparation', type: 'folder', pages: [
+        { id: 'javascript', title: 'JavaScript fundamentals' },
+        { id: 'react-patterns', title: 'React patterns' },
+        { id: 'system-design', title: 'System design' },
+      ]
+    },
   ];
   const allPages = sections.flatMap(section => section.pages);
   const selected = allPages.find(page => page.id === pagePath) ?? allPages[0];
