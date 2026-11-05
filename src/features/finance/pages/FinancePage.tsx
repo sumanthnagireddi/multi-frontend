@@ -8,8 +8,7 @@ import {
   CardInfo,
   PersonalExpense,
   ConstructionExpense,
-  DebtEntry,
-  CardBillStatement
+  DebtEntry
 } from '../services/finance.service';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { useAuth } from '../../../app/providers/AuthProvider';
@@ -17,7 +16,6 @@ import { useAuth } from '../../../app/providers/AuthProvider';
 // Import refactored subcomponents
 import OverviewTab from '../components/OverviewTab';
 import PersonalTab from '../components/PersonalTab';
-import CardsTab from '../components/CardsTab';
 import ConstructionTab from '../components/ConstructionTab';
 import DebtsTab from '../components/DebtsTab';
 import ChitTab from '../components/ChitTab';
@@ -33,7 +31,6 @@ export default function FinanceDashboard() {
   const [constructionExpenses, setConstructionExpenses] = useState<ConstructionExpense[]>([]);
   const [constructionBudget, setConstructionBudget] = useState<number>(5000000);
   const [debts, setDebts] = useState<DebtEntry[]>([]);
-  const [cardBills, setCardBills] = useState<CardBillStatement[]>([]);
   
   // Navigation & Filter states
   const [activeTab, setActiveTab] = useState<string>('overview');
@@ -63,7 +60,6 @@ export default function FinanceDashboard() {
   const [showAddPersonalForm, setShowAddPersonalForm] = useState(false);
   const [showAddConstForm, setShowAddConstForm] = useState(false);
   const [showAddDebtForm, setShowAddDebtForm] = useState(false);
-  const [showAddCardForm, setShowAddCardForm] = useState(false);
   const [showManageTabsModal, setShowManageTabsModal] = useState(false);
 
   // New Project input states
@@ -97,13 +93,6 @@ export default function FinanceDashboard() {
   const [dDueDate, setDDueDate] = useState('2026-07-12');
   const [dNotes, setDNotes] = useState('');
 
-  // Form states - Card
-  const [cName, setCName] = useState('');
-  const [cLastFour, setCLastFour] = useState('');
-  const [cBillingDay, setCBillingDay] = useState('15');
-  const [cDueDay, setCDueDay] = useState('5');
-  const [cLimit, setCLimit] = useState('');
-
   // Editing budget states
   const [tempTarget, setTempTarget] = useState('10000');
   const [tempConstBudget, setTempConstBudget] = useState('5000000');
@@ -118,7 +107,6 @@ export default function FinanceDashboard() {
       const fetchedConst = await financeService.getConstructionExpenses();
       const fetchedBudget = await financeService.getConstructionBudget();
       const fetchedDebts = await financeService.getDebts();
-      const fetchedBills = await financeService.getCardBillStatements(selectedMonth);
 
       let apiConstructionExpenses = fetchedConst;
       try {
@@ -162,7 +150,6 @@ export default function FinanceDashboard() {
       setConstructionExpenses(mergedConstructionExpenses);
       setConstructionBudget(fetchedBudget);
       setDebts(fetchedDebts);
-      setCardBills(fetchedBills);
 
       setTempTarget(fetchedTarget.toString());
       setTempConstBudget(fetchedBudget.toString());
@@ -403,42 +390,6 @@ export default function FinanceDashboard() {
     }
   };
 
-  const handleAddCard = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cName || !cLastFour || !cLimit) return;
-    try {
-      await financeService.addCard({
-        name: cName,
-        lastFour: cLastFour,
-        billingDay: parseInt(cBillingDay),
-        dueDay: parseInt(cDueDay),
-        creditLimit: parseFloat(cLimit)
-      });
-      setCName('');
-      setCLastFour('');
-      setCBillingDay('15');
-      setCDueDay('5');
-      setCLimit('');
-      setShowAddCardForm(false);
-      triggerToast('Credit card registered.');
-      loadDashboardData();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handlePayBill = async (cardId: string, month: string, isPaid: boolean) => {
-    try {
-      await financeService.markCardBillAsPaid(cardId, month, isPaid);
-      triggerToast(isPaid ? 'Card bill marked as Paid.' : 'Card bill marked as Unpaid.');
-      loadDashboardData();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // --- Calculations & Filtered values ---
-
   // Personal Month expenses calculations
   const monthlyPersonalExpenses = useMemo(() => {
     return personalExpenses.filter(e => e.date.startsWith(selectedMonth));
@@ -618,7 +569,6 @@ export default function FinanceDashboard() {
           {[
             { id: 'overview', label: 'Overview', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg> },
             { id: 'personal', label: 'Personal Expenses', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> },
-            { id: 'cards', label: 'Card Statements', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> },
             { id: 'chits', label: 'Chit Funds', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.9-.7-2-1.1-3.3-1.1-1.8 0-3.2.9-3.2 2.2 0 3.5 7 1.5 7 5.1 0 1.4-1.4 2.4-3.5 2.4-1.5 0-3-.5-4-1.3M12 5v14"/></svg> }
           ].map(tab => (
             <button
@@ -716,13 +666,11 @@ export default function FinanceDashboard() {
                 netDebtValue={netDebtValue}
                 totalReceivables={totalReceivables}
                 totalPayables={totalPayables}
-                cardBills={cardBills}
                 isEditingTarget={isEditingTarget}
                 setIsEditingTarget={setIsEditingTarget}
                 tempTarget={tempTarget}
                 setTempTarget={setTempTarget}
                 handleUpdateTarget={handleUpdateTarget}
-                handlePayBill={handlePayBill}
                 selectedMonth={selectedMonth}
                 
                 constructionProjects={constructionProjects}
@@ -768,32 +716,6 @@ export default function FinanceDashboard() {
                 setPeUsedBy={setPeUsedBy}
                 peNotes={peNotes}
                 setPeNotes={setPeNotes}
-                onRefresh={loadDashboardData}
-                triggerToast={triggerToast}
-              />
-            )}
-
-            {/* Credit Cards Tab */}
-            {activeTab === 'cards' && (
-              <CardsTab
-                cards={cards}
-                cardBills={cardBills}
-                cardMap={cardMap}
-                selectedMonth={selectedMonth}
-                showAddCardForm={showAddCardForm}
-                setShowAddCardForm={setShowAddCardForm}
-                handleAddCard={handleAddCard}
-                handlePayBill={handlePayBill}
-                cName={cName}
-                setCName={setCName}
-                cLastFour={cLastFour}
-                setCLastFour={setCLastFour}
-                cBillingDay={cBillingDay}
-                setCBillingDay={setCBillingDay}
-                cDueDay={cDueDay}
-                setCDueDay={setCDueDay}
-                cLimit={cLimit}
-                setCLimit={setCLimit}
                 onRefresh={loadDashboardData}
                 triggerToast={triggerToast}
               />

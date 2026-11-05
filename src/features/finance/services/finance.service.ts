@@ -50,18 +50,6 @@ export interface DebtEntry {
   partialPayments: PartialPaymentRecord[];
 }
 
-export interface CardBillStatement {
-  cardId: string;
-  cardName: string;
-  statementMonth: string;
-  startDate: string;
-  endDate: string;
-  dueDate: string;
-  totalAmount: number;
-  transactions: PersonalExpense[];
-  isPaid: boolean;
-}
-
 export interface ChitAuction {
   month: number;
   winningBid: number;
@@ -206,10 +194,6 @@ const delay = () => new Promise(resolve => setTimeout(resolve, 180));
 
 export const financeService = {
   async getCards() { await delay(); return [...cards]; },
-  async addCard(card: Omit<CardInfo, 'id'>) { await delay(); const item = { ...card, id: uid('card') }; cards.push(item); return item; },
-  async deleteCard(id: string) { await delay(); cards = cards.filter(item => item.id !== id); return true; },
-  async updateCard(id: string, card: Partial<Omit<CardInfo, 'id'>>) { await delay(); cards = cards.map(item => item.id === id ? { ...item, ...card } : item); return cards.find(item => item.id === id)!; },
-
   async getPersonalExpenses() { await delay(); return [...personalExpenses]; },
   async addPersonalExpense(expense: Omit<PersonalExpense, 'id'>) { await delay(); const item = { ...expense, id: uid('expense') }; personalExpenses.push(item); return item; },
   async deletePersonalExpense(id: string) { await delay(); personalExpenses = personalExpenses.filter(item => item.id !== id); return true; },
@@ -424,22 +408,6 @@ export const financeService = {
     if (!response.ok) throw new Error('Could not delete partial payment');
     return await response.json() as DebtEntry;
   },
-
-  async getCardBillStatements(targetMonth: string): Promise<CardBillStatement[]> {
-    await delay();
-    return cards.map(card => ({
-      cardId: card.id,
-      cardName: card.name,
-      statementMonth: targetMonth,
-      startDate: `${targetMonth}-01`,
-      endDate: `${targetMonth}-31`,
-      dueDate: `${targetMonth}-${String(card.dueDay).padStart(2, '0')}`,
-      totalAmount: personalExpenses.filter(expense => expense.cardId === card.id).reduce((sum, expense) => sum + expense.amount, 0),
-      transactions: personalExpenses.filter(expense => expense.cardId === card.id),
-      isPaid: false,
-    }));
-  },
-  async markCardBillAsPaid(cardId: string, targetMonth: string, isPaid: boolean) { await delay(); return Boolean(cardId && targetMonth && typeof isPaid === 'boolean'); },
 
   async getChitDashboard(): Promise<ChitDashboard> {
     await delay();

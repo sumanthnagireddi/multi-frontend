@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CardBillStatement, ConstructionExpense } from '../services/finance.service';
+import { ConstructionExpense } from '../services/finance.service';
 
 interface OverviewTabProps {
   personalTarget: number;
@@ -7,13 +7,11 @@ interface OverviewTabProps {
   netDebtValue: number;
   totalReceivables: number;
   totalPayables: number;
-  cardBills: CardBillStatement[];
   isEditingTarget: boolean;
   setIsEditingTarget: (editing: boolean) => void;
   tempTarget: string;
   setTempTarget: (val: string) => void;
   handleUpdateTarget: (e: React.FormEvent) => void;
-  handlePayBill: (cardId: string, month: string, isPaid: boolean) => void;
   selectedMonth: string;
 
   // Dynamic Construction Projects
@@ -28,13 +26,11 @@ export default function OverviewTab({
   netDebtValue,
   totalReceivables,
   totalPayables,
-  cardBills,
   isEditingTarget,
   setIsEditingTarget,
   tempTarget,
   setTempTarget,
   handleUpdateTarget,
-  handlePayBill,
   selectedMonth,
   constructionProjects,
   constructionExpenses,
@@ -297,52 +293,11 @@ export default function OverviewTab({
         </div>
       </div>
 
-      {/* Sub-Layout: Card Statement Bills at a Glance */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] rounded-2xl shadow-sm p-6">
+      <div className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] rounded-2xl shadow-sm p-6 flex flex-col justify-between">
+        <div>
           <h3 className="text-md font-serif font-semibold text-[color:var(--claude-ink)] border-b border-[color:var(--claude-border)] pb-3">
-            Credit Card Bills due in next cycle
+            Personal Target Adjuster
           </h3>
-          <div className="divide-y divide-[color:var(--claude-border)]">
-            {cardBills.length === 0 ? (
-              <p className="text-xs text-[color:var(--claude-ink-sub)] py-8 text-center">No statements registered.</p>
-            ) : (
-              cardBills.map(bill => (
-                <div key={`${bill.cardId}-${bill.startDate}`} className="py-4 flex justify-between items-center gap-4">
-                  <div>
-                    <p className="text-sm font-semibold">{bill.cardName}</p>
-                    <p className="text-xs text-[color:var(--claude-ink-sub)] mt-0.5">
-                      Due date: <span className="font-medium text-[color:var(--claude-ink)]">{bill.dueDate}</span> | Statement: {bill.startDate} to {bill.endDate}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-sm font-semibold tracking-tight tabular-nums">₹{bill.totalAmount.toLocaleString('en-IN')}</p>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${bill.isPaid ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'}`}>
-                        {bill.isPaid ? 'Paid' : 'Unpaid'}
-                      </span>
-                    </div>
-                    
-                    {!bill.isPaid && bill.totalAmount > 0 && (
-                      <button
-                        onClick={() => handlePayBill(bill.cardId, bill.statementMonth, true)}
-                        className="px-3 py-1.5 text-[10px] font-semibold bg-[color:var(--claude-accent)] hover:bg-[color:var(--claude-accent)]/85 text-white rounded-lg transition"
-                      >
-                        Mark Paid
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="bg-[color:var(--claude-card)] border border-[color:var(--claude-border)] rounded-2xl shadow-sm p-6 flex flex-col justify-between">
-          <div>
-            <h3 className="text-md font-serif font-semibold text-[color:var(--claude-ink)] border-b border-[color:var(--claude-border)] pb-3">
-              Personal Target Adjuster
-            </h3>
             <p className="text-xs text-[color:var(--claude-ink-sub)] mt-2">
               Configure your monthly expense threshold. When exceeded, indicators show warning states.
             </p>
